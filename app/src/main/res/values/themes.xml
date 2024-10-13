@@ -1,0 +1,86 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.ProjectUAS" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/button_color</item>
+    </style>
+
+    <style name="Theme.ProjectUAS" parent="Base.Theme.ProjectUAS">
+
+    </style>
+
+    <style name="username">
+        <item name="android:layout_marginLeft">50dp</item>
+        <item name="android:layout_marginRight">50dp</item>
+        <item name="android:layout_marginTop">250dp</item>
+    </style>
+
+    <style name="username_regis">
+        <item name="android:layout_marginLeft">50dp</item>
+        <item name="android:layout_marginRight">50dp</item>
+        <item name="android:layout_marginTop">230dp</item>
+    </style>
+
+    <style name="email">
+        <item name="android:layout_marginLeft">50dp</item>
+        <item name="android:layout_marginRight">50dp</item>
+        <item name="android:layout_marginTop">25dp</item>
+    </style>
+
+    <style name="password">
+        <item name="android:layout_marginLeft">50dp</item>
+        <item name="android:layout_marginRight">50dp</item>
+        <item name="android:layout_marginTop">25dp</item>
+    </style>
+
+    <style name="confirm_password">
+        <item name="android:layout_marginLeft">50dp</item>
+        <item name="android:layout_marginRight">50dp</item>
+        <item name="android:layout_marginTop">25dp</item>
+    </style>
+
+    <style name="tv_login">
+        <item name="android:layout_marginLeft">10dp</item>
+        <item name="android:layout_marginTop">128dp</item>
+        <item name="android:text">Welcome!</item>
+        <item name="android:textSize">36dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="tv_register">
+        <item name="android:layout_marginLeft">10dp</item>
+        <item name="android:layout_marginTop">80dp</item>
+        <item name="android:text">Welcome\nOnboard!</item>
+        <item name="android:textSize">36dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="tvlogin_in_register">
+        <item name="android:layout_marginTop">28dp</item>
+    </style>
+
+    <style name="tvlogin2_in_register">
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:layout_marginTop">28dp</item>
+    </style>
+
+    <style name="tvregister_in_login">
+        <item name="android:layout_marginTop">28dp</item>
+    </style>
+
+    <style name="tvregister2_in_login">
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:layout_marginTop">28dp</item>
+    </style>
+
+    <style name="signup">
+        <item name="colorAccent">@color/goto_color</item>
+    </style>
+    
+    <style name="errorMessage">
+        <item name="android:layout_marginLeft">60dp</item>
+        <item name="android:layout_marginRight">50dp</item>
+        <item name="android:layout_marginTop">5dp</item>
+    </style>
+</resources>

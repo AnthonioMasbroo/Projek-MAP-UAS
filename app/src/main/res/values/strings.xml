@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">projectUAS</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="button_name_Login_value">Sign In</string>
+    <string name="button_name_Register_value">Sign Up</string>
+    <string name="name_empty">Field is empty!</string>
+    <string name="password_empty">Field is empty!</string>
+    <string name="tv_regis1">Dont have an account? </string>
+    <string name="tv_regis2">Sign Up </string>
+    <string name="tv_login1">Already have an account? </string>
+    <string name="tv_login2">Sign In</string>
+    <string name="name_hint">Username or Email</string>
+    <string name="name_register_hint">Username</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="confirm_password_hint">Confirm Password</string>
+</resources>

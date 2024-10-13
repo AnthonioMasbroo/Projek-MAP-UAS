@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "625614080509",
+    "project_id": "projek-map-uas",
+    "storage_bucket": "projek-map-uas.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:625614080509:android:1bb299f0944fb2c7f63194",
+        "android_client_info": {
+          "package_name": "com.example.projectuas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDC08ZOgb4R06Og9rA7igCjvL41Fkpe2Pk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
