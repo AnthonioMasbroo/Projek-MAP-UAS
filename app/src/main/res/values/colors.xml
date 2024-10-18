@@ -7,4 +7,6 @@
     <color name="tv_color">#252525</color>
     <color name="bg">#F5F5F7</color>
     <color name="goto_color">#55847A</color>
+    <color name="green">#008000</color>
+    <color name="red">#ff2c2c</color>
 </resources>
