@@ -15,4 +15,10 @@
     <string name="email_hint">Email</string>
     <string name="password_hint">Password</string>
     <string name="confirm_password_hint">Confirm Password</string>
+
+    <!-- Bottom Nav -->
+    <string name="home">Home</string>
+    <string name="create">Create</string>
+    <string name="archive">Archive</string>
+    <string name="profile">Profile</string>
 </resources>

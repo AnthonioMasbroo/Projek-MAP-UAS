@@ -87,15 +87,13 @@ class LoginFragment : Fragment() {
                                         if (document.exists()) {
                                             val fetchedUsername = document.getString("username")
 
-                                            // Pass the username to HomeFragment
-                                            val homeFragment = HomeFragment()
-                                            val bundle = Bundle()
-                                            bundle.putString("username", fetchedUsername)
-                                            homeFragment.arguments = bundle
+                                            // Line ini masih harus dibenerin lagi (Gilbert)
+                                            // Kirim username ke MainActivity melalui onLoginSuccess
+                                            if (fetchedUsername != null) {
+                                                (activity as MainActivity).onLoginSuccess(fetchedUsername)
+                                            }
+                                            // Sampai sini errornya yang harus dibenerin
 
-                                            parentFragmentManager.beginTransaction()
-                                                .replace(R.id.fragment_container, homeFragment)
-                                                .commit()
                                         }
                                     }
                                     .addOnFailureListener {

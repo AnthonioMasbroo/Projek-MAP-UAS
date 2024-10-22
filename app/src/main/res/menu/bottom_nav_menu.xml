@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Item Home -->
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="@string/home"
+        app:showAsAction="ifRoom" />
+
+    <!-- Item Create -->
+    <item
+        android:id="@+id/nav_create"
+        android:icon="@drawable/ic_add"
+        android:title="@string/create"
+        app:showAsAction="ifRoom" />
+
+    <!-- Item Archive -->
+    <item
+        android:id="@+id/nav_archive"
+        android:icon="@drawable/ic_archive"
+        android:title="@string/archive"
+        app:showAsAction="ifRoom" />
+
+    <!-- Item Profile -->
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/profile_picture"
+        android:title="@string/profile"
+        app:showAsAction="ifRoom" />
+
+</menu>
