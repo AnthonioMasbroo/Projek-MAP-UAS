@@ -8,61 +8,99 @@
     tools:context=".EditProfileActivity">
 
     <!-- Tombol Kembali -->
-    <ImageButton
+    <ImageView
         android:id="@+id/backButton"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="30dp"
+        android:background="@drawable/outline_arrow_circle_left_24"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteX="30dp"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/editProfileTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_back"
-        android:contentDescription="image"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints,TouchTargetSizeCheck"
-        tools:layout_editor_absoluteX="25dp" />
-
-    <!-- Gambar Profil -->
-
-    <ImageView
-        android:id="@+id/editProfileImage"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="40dp"
-        android:src="@drawable/account_3033143"
-        app:layout_constraintTop_toBottomOf="@id/backButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <!-- Nama Edit -->
-    <EditText
-        android:id="@+id/editProfileName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="92dp"
-        android:layout_marginEnd="32dp"
-        android:background="@drawable/rounded_bg"
-        android:hint="Your Name"
-        android:padding="12dp"
+        android:layout_marginTop="43dp"
+        android:layout_marginLeft="10dp"
+        android:text="Edit Profile"
         android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editProfileImage" />
+        android:textColor="@color/tv_color"
+        android:fontFamily="@font/poppinsmedium"
+        app:layout_constraintLeft_toRightOf="@id/backButton"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Tombol Simpan -->
-
+    <!-- Button Save -->
     <Button
         android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="30dp"
         android:backgroundTint="@color/green"
+        android:fontFamily="@font/poppinssemibold"
+        android:textSize="14sp"
         android:text="Save"
         android:textColor="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Edit Profil Picture -->
+    <ImageView
+        android:id="@+id/editProfileImage"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="60dp"
+        android:src="@drawable/account_3033143"
+        app:layout_constraintTop_toBottomOf="@id/backButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
+    <ImageView
+        android:id="@+id/editProfileImageIcon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="120dp"
+        android:layout_marginEnd="155dp"
+        android:background="@drawable/baseline_edit_square_24"
+        app:layout_constraintTop_toBottomOf="@id/backButton"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Edit Username -->
+    <TextView
+        android:id="@+id/editUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="50dp"
+        android:text="Your name"
+        android:textSize="18sp"
+        android:textColor="@color/tv_color"
+        android:fontFamily="@font/poppinsbold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editProfileImage" />
+
+    <EditText
+        android:id="@+id/editProfileName"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="30dp"
+        android:background="@drawable/rounded_bg"
+        android:textColorHint="@color/gray"
+        android:hint="Your Name"
+        android:padding="15dp"
+        android:textSize="18sp"
+        android:fontFamily="@font/poppinsmedium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editUsername" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
