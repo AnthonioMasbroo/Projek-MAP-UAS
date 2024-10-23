@@ -1,5 +1,6 @@
 package com.example.projectuas
 
+import android.content.Context
 import com.google.firebase.FirebaseApp
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -30,19 +31,19 @@ class MainActivity : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
-                    replaceFragment(HomeFragment())
+                    loadFragment(HomeFragment())
                     true
                 }
                 R.id.nav_create -> {
-                    replaceFragment(AddProjectFragment())
+                    loadFragment(AddProjectFragment())
                     true
                 }
                 R.id.nav_archive -> {
-                    replaceFragment(ArchiveFragment())
+                    loadFragment(ArchiveFragment())
                     true
                 }
                 R.id.nav_profile -> {
-                    replaceFragment(ProfileFragment())
+                    loadFragment(ProfileFragment())
                     true
                 }
                 else -> false
@@ -52,21 +53,23 @@ class MainActivity : AppCompatActivity() {
 
     // Fungsi ini dipanggil ketika login sukses dan menerima username
     fun onLoginSuccess(username: String) {
-        // Buat bundle dan masukkan username
-        val bundle = Bundle()
-        bundle.putString("username", username)
+        // Simpan username di SharedPreferences
+        val sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("username", username)
+            apply() // Simpan perubahan
+        }
 
-        // Buat HomeFragment dan set argumen bundle
-        val homeFragment = HomeFragment()
-        homeFragment.arguments = bundle
+        // Buat HomeFragment tanpa perlu kirim bundle, username diambil dari SharedPreferences
+        loadFragment(HomeFragment())
 
-        // Ganti fragment ke HomeFragment dan tampilkan BottomNavigationView
-        replaceFragment(homeFragment)
+        // Tampilkan BottomNavigationView
         bottomNavigationView.visibility = BottomNavigationView.VISIBLE
     }
 
     // Fungsi untuk mengganti fragment
-    private fun replaceFragment(fragment: Fragment) {
+    private fun loadFragment(fragment: Fragment) {
+        // Replace fragment in container
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
