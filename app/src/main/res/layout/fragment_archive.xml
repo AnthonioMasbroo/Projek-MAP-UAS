@@ -1,14 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ArchiveFragment">
+    tools:context=".ArchiveFragment"
+    android:background="@color/white">
 
-    <!-- TODO: Update blank fragment layout -->
+    <!-- Judul Halaman Archive -->
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:id="@+id/archiveTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Archive"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="60dp"
+        android:gravity="center" />
 
-</FrameLayout>
+    <!-- Pesan Jika Archive Kosong -->
+    <TextView
+        android:id="@+id/archiveMessage"
+        android:textColor="@color/gray"
+        android:layout_width="301dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="300dp"
+        android:gravity="center"
+        android:text="Belum ada project yang Diselesaikan"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

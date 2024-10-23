@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_create -> {
-                    replaceFragment(CreateFragment())
+                    replaceFragment(AddProjectFragment())
                     true
                 }
                 R.id.nav_archive -> {

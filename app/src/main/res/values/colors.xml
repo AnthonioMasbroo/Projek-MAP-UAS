@@ -9,4 +9,7 @@
     <color name="goto_color">#55847A</color>
     <color name="green">#008000</color>
     <color name="red">#ff2c2c</color>
+    <color name="input_date">#455A64</color>
+    <color name="button_add_project">#F0B646</color>
+    <color name="gray">#888888</color>
 </resources>
