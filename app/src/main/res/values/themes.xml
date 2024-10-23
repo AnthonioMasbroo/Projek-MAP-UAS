@@ -77,10 +77,43 @@
     <style name="signup">
         <item name="colorAccent">@color/goto_color</item>
     </style>
-    
+
     <style name="errorMessage">
         <item name="android:layout_marginLeft">60dp</item>
         <item name="android:layout_marginRight">50dp</item>
         <item name="android:layout_marginTop">5dp</item>
+    </style>
+
+    <style name="project_title">
+        <item name="android:layout_marginLeft">30dp</item>
+        <item name="android:layout_marginRight">30dp</item>
+        <item name="android:layout_marginTop">50dp</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="project_detail">
+        <item name="android:layout_marginLeft">30dp</item>
+        <item name="android:layout_marginRight">30dp</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="add_team_member">
+        <item name="android:layout_marginLeft">30dp</item>
+        <item name="android:layout_marginRight">30dp</item>
+        <item name="android:layout_marginTop">30dp</item>
+    </style>
+
+    <style name="input_date">
+        <item name="android:layout_marginLeft">80dp</item>
+        <item name="android:layout_marginRight">150dp</item>
+        <item name="android:layout_marginTop">35dp</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="task_list">
+        <item name="android:layout_marginLeft">30dp</item>
+        <item name="android:layout_marginRight">30dp</item>
+        <item name="android:layout_marginTop">10dp</item>
     </style>
 </resources>

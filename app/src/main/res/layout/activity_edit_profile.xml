@@ -15,7 +15,9 @@
         android:layout_marginTop="50dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_back"
+        android:contentDescription="image"
         app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints,TouchTargetSizeCheck"
         tools:layout_editor_absoluteX="25dp" />
 
     <!-- Gambar Profil -->

@@ -1,0 +1,168 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    tools:context=".AddProjectFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Other views -->
+
+        <EditText
+            android:id="@+id/etProjectTitle"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            style="@style/project_title"
+            android:fontFamily="@font/poppinsregular"
+            android:background="@drawable/input_project_title"
+            android:hint="@string/add_title_hint"
+            android:inputType="text"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <EditText
+            android:id="@+id/etProjectDetail"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            style="@style/project_detail"
+            android:fontFamily="@font/poppinsregular"
+            android:background="@drawable/input_project_detail"
+            android:hint="@string/add_detail_hint"
+            android:gravity="top"
+            android:inputType="textMultiLine"
+            android:scrollbars="vertical"
+            android:minLines="6"
+            app:layout_constraintTop_toBottomOf="@+id/etProjectTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/AddTeamMember"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/add_team_member"
+            android:text="Add Team Member"
+            android:textSize="16sp"
+            android:textColor="@color/tv_color"
+            android:fontFamily="@font/poppinssemibold"
+            app:layout_constraintTop_toBottomOf="@id/etProjectDetail"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <ImageView
+            android:id="@+id/ivAddTeamMember"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="344dp"
+            android:src="@drawable/add_button"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/AddTeamMember" />
+
+        <TextView
+            android:id="@+id/TimeAndDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/add_team_member"
+            android:text="Time &amp; Date"
+            android:textSize="16sp"
+            android:textColor="@color/tv_color"
+            android:fontFamily="@font/poppinssemibold"
+            app:layout_constraintTop_toBottomOf="@id/ivAddTeamMember"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <ImageView
+            android:id="@+id/ivDateTime"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="356dp"
+            android:src="@drawable/calendar_2278049"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/TimeAndDate" />
+
+        <EditText
+            android:id="@+id/etDateTime"
+            style="@style/input_date"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:background="@drawable/input_date"
+            android:fontFamily="@font/poppinsmedium"
+            android:hint="@string/date_hint"
+            android:inputType="datetime"
+            android:textColorHint="@color/bg"
+            android:textColor="@color/bg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/ivDateTime"
+            app:layout_constraintTop_toTopOf="@id/TimeAndDate" />
+
+        <TextView
+            android:id="@+id/AddTask"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/add_team_member"
+            android:text="Add Task"
+            android:textSize="16sp"
+            android:textColor="@color/tv_color"
+            android:fontFamily="@font/poppinssemibold"
+            app:layout_constraintTop_toBottomOf="@id/etDateTime"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <LinearLayout
+            android:id="@+id/linearLayoutContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            style="@style/task_list"
+            app:layout_constraintTop_toBottomOf="@id/AddTask"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <LinearLayout
+            android:id="@+id/addTaskButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/button_add_task"
+            android:padding="16dp"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Add new task"
+            style="@style/task_list"
+            app:layout_constraintTop_toBottomOf="@id/linearLayoutContainer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:onClick="addTaskField">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/add_11067304" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnAddProject"
+            android:layout_width="300dp"
+            android:layout_height="55dp"
+            android:text="Add Project"
+            android:textSize="18dp"
+            android:layout_marginTop="50dp"
+            android:fontFamily="@font/poppinsmedium"
+            android:textColor="@color/bg"
+            android:background="@drawable/button_add_project"
+            android:backgroundTint="@color/button_add_project"
+            app:layout_constraintTop_toBottomOf="@id/addTaskButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
