@@ -1,5 +1,6 @@
 package com.example.projectuas
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,10 +18,11 @@ class HomeFragment : Fragment() {
 
         val tvWelcome: TextView = view.findViewById(R.id.tvWelcome)
 
-        // Get the username passed from LoginFragment
-        val username = arguments?.getString("username")
+        // Ambil username dari SharedPreferences
+        val sharedPref = requireActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
+        val username = sharedPref.getString("username", "User") // Default jika username tidak ada
 
-        // Display the username in the welcome message
+        // Tampilkan username di Welcome message
         tvWelcome.text = "Welcome, $username"
 
         return view
