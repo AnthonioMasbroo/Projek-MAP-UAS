@@ -22,23 +22,135 @@
         android:layout_marginTop="60dp"
         android:gravity="center" />
 
-    <!-- Pesan Jika Archive Kosong -->
-    <TextView
-        android:id="@+id/archiveMessage"
-        android:textColor="@color/gray"
-        android:layout_width="301dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="300dp"
-        android:gravity="center"
-        android:text="Belum ada project yang Diselesaikan"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+    <!-- dummyDataArchive1 -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="351dp"
+        android:layout_height="79dp"
+        android:layout_marginStart="28dp"
+        android:background="@drawable/button_add_project"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.312">
 
+        <!-- Nama Proyek -->
 
+        <TextView
+            android:id="@+id/tvProjectName1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="15dp"
+            android:text="Portfolio Website Design"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Gambar Avatar atau Icon Edit -->
+
+        <ImageView
+            android:id="@+id/editProfileImage"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginEnd="25dp"
+            android:layout_marginTop="25dp"
+            android:gravity="center"
+            android:src="@drawable/account_3033143"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Tanggal Proyek -->
+
+        <TextView
+            android:id="@+id/tvProjectDate1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="4dp"
+            android:text="13/10/2024"
+            android:textColor="@android:color/black"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectName1" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- dummyDataArchive2-->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="351dp"
+        android:layout_height="79dp"
+        android:layout_marginStart="28dp"
+        android:background="@drawable/button_add_project"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.17">
+
+        <!-- Nama Proyek -->
+        <TextView
+            android:id="@+id/tvProjectName2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="15dp"
+            android:text="Company Website Design"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- GambarProfilePicture1 -->
+
+        <ImageView
+            android:id="@+id/editProfileImage2"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginEnd="25dp"
+            android:Gravity="center"
+            android:src="@drawable/user_8109090"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- GambarProfilePicture2 -->
+
+        <ImageView
+            android:id="@+id/editProfileImage3"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginEnd="40dp"
+            android:Gravity="center"
+            android:src="@drawable/user_10923836"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Tanggal Proyek -->
+
+        <TextView
+            android:id="@+id/tvProjectDate2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="4dp"
+            android:text="13/10/2024"
+            android:textColor="@android:color/black"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage2"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectName2" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

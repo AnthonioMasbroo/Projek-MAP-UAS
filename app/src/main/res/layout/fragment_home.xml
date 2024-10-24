@@ -22,4 +22,337 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.126" />
 
+    <!-- Title ProjectTask -->
+
+    <TextView
+        android:id="@+id/archiveMessage"
+        android:layout_width="300dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="168dp"
+        android:gravity="center_vertical"
+        android:text="Project Task"
+        android:textColor="@color/gray"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- DummyData1 -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+
+        android:id="@+id/constraintLayout"
+        android:layout_width="188dp"
+        android:layout_height="121dp"
+        android:layout_marginStart="28dp"
+        android:background="@drawable/button_add_project"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.344"
+        android:elevation="10dp">
+
+        <!-- Nama Proyek -->
+
+        <TextView
+            android:id="@+id/tvProjectName2"
+            android:layout_width="145dp"
+            android:layout_height="41dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="16dp"
+            android:text="Business Website Design"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage2"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- GambarProfilePicture1 -->
+
+        <ImageView
+            android:id="@+id/editProfileImage2"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="16dp"
+            android:Gravity="center"
+            android:src="@drawable/user_8109090"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- GambarProfilePicture2 -->
+
+        <ImageView
+            android:id="@+id/editProfileImage3"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="28dp"
+            android:Gravity="center"
+            android:src="@drawable/user_10923836"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvProjectDate2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="4dp"
+            android:text="Team member"
+            android:textColor="@android:color/black"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage2"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectName2" />
+
+        <TextView
+            android:id="@+id/tvProjectDate3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="28dp"
+            android:text="On Progress"
+            android:textColor="@android:color/black"
+            android:textSize="9sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage2"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectName2" />
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- DummyData2 -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+
+        android:id="@+id/constraintlayout2"
+        android:layout_width="188dp"
+        android:layout_height="121dp"
+        android:layout_marginStart="236dp"
+        android:background="@drawable/gray_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.344"
+        android:elevation="10dp">
+
+        <!-- Nama Proyek -->
+
+        <TextView
+            android:id="@+id/tvProjectName4"
+            android:layout_width="145dp"
+            android:layout_height="41dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="16dp"
+            android:text="Campus Website Design"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage4"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- GambarProfilePicture1 -->
+
+        <ImageView
+            android:id="@+id/editProfileImage4"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="16dp"
+            android:Gravity="center"
+            android:src="@drawable/user_8109090"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- GambarProfilePicture2 -->
+
+        <ImageView
+            android:id="@+id/editProfileImage5"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="28dp"
+            android:Gravity="center"
+            android:src="@drawable/user_10923836"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvProjectDate4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="4dp"
+            android:text="Team member"
+            android:textColor="@android:color/white"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage4"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectName4" />
+
+        <TextView
+            android:id="@+id/tvProjectDate5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="28dp"
+            android:text="On Progress"
+            android:textColor="@android:color/white"
+            android:textSize="9sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage4"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectName4" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Title PrivateTask -->
+
+    <TextView
+        android:id="@+id/archiveMessage2"
+        android:layout_width="300dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="400dp"
+        android:gravity="center_vertical"
+        android:text="Private Task"
+        android:textColor="@color/gray"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.27"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- dummyDataArchive3 -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+
+        android:layout_width="351dp"
+        android:layout_height="79dp"
+        android:layout_marginStart="28dp"
+        android:background="@drawable/white_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.682"
+        android:elevation="8dp">
+
+        <!-- Nama Proyek -->
+
+        <TextView
+            android:id="@+id/tvProjectName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="15dp"
+            android:text="Tugas User Interface"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Gambar Avatar atau Icon Edit -->
+
+        <ImageView
+            android:id="@+id/editProfileImage1"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="25dp"
+            android:gravity="center"
+            android:src="@drawable/ic_delete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Tanggal Proyek -->
+
+        <TextView
+            android:id="@+id/tvProjectDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="4dp"
+            android:text="On Progress"
+            android:textColor="@android:color/black"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectName" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- dummyDataArchive4 -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+
+        android:layout_width="351dp"
+        android:layout_height="79dp"
+        android:layout_marginStart="28dp"
+        android:background="@drawable/white_button"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.828">
+
+        <!-- Nama Proyek -->
+
+        <TextView
+            android:id="@+id/tvProjectName1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="15dp"
+            android:text="Tugas Back-End"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Gambar Avatar atau Icon Edit -->
+
+        <ImageView
+            android:id="@+id/editProfileImage"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="25dp"
+            android:gravity="center"
+            android:src="@drawable/ic_delete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Tanggal Proyek -->
+
+        <TextView
+            android:id="@+id/tvProjectDate1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="4dp"
+            android:text="On Progress"
+            android:textColor="@android:color/black"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toStartOf="@+id/editProfileImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectName1" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
