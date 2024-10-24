@@ -38,26 +38,36 @@ class ProjectDetailActivity : AppCompatActivity() {
                     val projectTitle = document.getString("projectTitle")
                     val projectDetail = document.getString("projectDetail")
                     val dueDate = document.getString("dueDate")
-                    val teamMember = document.getString("teamMember")
+                    val memberList = document.get("memberList") as? List<String> // Dapatkan memberList sebagai List
                     val taskList = document.get("taskList") as? List<String>
 
                     // Update UI elements
                     findViewById<TextView>(R.id.tvProjectTitle).text = projectTitle
                     findViewById<TextView>(R.id.tvProjectDetail).text = projectDetail
                     findViewById<TextView>(R.id.tvDueDate).text = dueDate
-                    findViewById<TextView>(R.id.tvTeamMember).text = teamMember
+
+                    // Handle team member list
+                    val llTeamMember = findViewById<LinearLayout>(R.id.llTeamMember)
+                    llTeamMember.removeAllViews() // Clear existing views
+                    memberList?.forEach { member ->
+                        val memberTextView = TextView(this).apply {
+                            text = member
+                            textSize = 16f
+                            setPadding(0, 10, 0, 10)
+                        }
+                        llTeamMember.addView(memberTextView) // Tambahkan setiap anggota tim ke UI
+                    }
 
                     // Handle task list
                     val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
-                    llTaskList.removeAllViews()
-
+                    llTaskList.removeAllViews() // Clear existing views
                     taskList?.forEach { task ->
                         val taskView = layoutInflater.inflate(R.layout.item_task, null)
                         val taskText = taskView.findViewById<TextView>(R.id.taskName)
                         val taskIcon = taskView.findViewById<ImageView>(R.id.taskIcon)
                         taskText.text = task
                         taskIcon.setImageResource(R.drawable.img)
-                        llTaskList.addView(taskView)
+                        llTaskList.addView(taskView) // Tambahkan setiap task ke UI
                     }
                 } else {
                     Toast.makeText(this, "Project not found", Toast.LENGTH_SHORT).show()
@@ -68,3 +78,4 @@ class ProjectDetailActivity : AppCompatActivity() {
             }
     }
 }
+
