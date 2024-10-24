@@ -1,6 +1,7 @@
 package com.example.projectuas
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
@@ -80,34 +81,38 @@ class LoginFragment : Fragment() {
                         if (task.isSuccessful) {
                             val userId = auth.currentUser?.uid
                             if (userId != null) {
-                                // Fetch username from Firestore
+                                // Fetch user data from Firestore
                                 db.collection("users").document(userId)
                                     .get()
                                     .addOnSuccessListener { document ->
                                         if (document.exists()) {
                                             val fetchedUsername = document.getString("username")
+                                            val fetchedEmail = document.getString("email") // Misalnya kamu juga ingin simpan email
 
-                                            // Line ini masih harus dibenerin lagi (Gilbert)
-                                            // Kirim username ke MainActivity melalui onLoginSuccess
-                                            if (fetchedUsername != null) {
+                                            if (fetchedUsername != null && fetchedEmail != null) {
+                                                // Simpan username dan email ke SharedPreferences
+                                                val sharedPref = requireActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
+                                                with(sharedPref.edit()) {
+                                                    putString("username", fetchedUsername)
+                                                    putString("email", fetchedEmail)
+                                                    apply() // Simpan perubahan
+                                                }
+
+                                                // Panggil onLoginSuccess di MainActivity
                                                 (activity as MainActivity).onLoginSuccess(fetchedUsername)
+                                            } else {
+                                                Toast.makeText(activity, "Username atau Email tidak ditemukan", Toast.LENGTH_LONG).show()
                                             }
-                                            // Sampai sini errornya yang harus dibenerin
-
+                                        } else {
+                                            Toast.makeText(activity, "Data pengguna tidak ditemukan", Toast.LENGTH_LONG).show()
                                         }
                                     }
                                     .addOnFailureListener {
-                                        Toast.makeText(
-                                            activity, "Failed to fetch user data",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                        Toast.makeText(activity, "Gagal mengambil data pengguna", Toast.LENGTH_LONG).show()
                                     }
                             }
                         } else {
-                            Toast.makeText(
-                                activity, "Login failed: ${task.exception?.message}",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            Toast.makeText(activity, "Login gagal: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                         }
                     }
             }
