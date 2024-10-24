@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
@@ -69,18 +70,38 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setTextSize(20f)
         }
         linearLayoutContainer?.addView(newTaskEditText)
-        taskList.add(newTaskEditText.text.toString())
     }
 
     private fun createProject() {
         val projectTitle = view?.findViewById<EditText>(R.id.etProjectTitle)?.text.toString().trim()
         val projectDetail = view?.findViewById<EditText>(R.id.etProjectDetail)?.text.toString().trim()
         val dueDate = view?.findViewById<EditText>(R.id.etDateTime)?.text.toString().trim()
-        val teamMember = view?.findViewById<EditText>(R.id.AddTeamMember)?.text.toString().trim()
+        val teamMember = view?.findViewById<TextView>(R.id.AddTeamMember)?.text.toString().trim()
+        val linearLayoutContainer: LinearLayout? = view?.findViewById(R.id.linearLayoutContainer)
 
         // Validate inputs
         if (projectTitle.isEmpty() || projectDetail.isEmpty() || dueDate.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill out all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Clear taskList first, and retrieve all task input values from the EditTexts
+        taskList.clear()
+        linearLayoutContainer?.let {
+            for (i in 0 until it.childCount) {
+                val taskEditText = it.getChildAt(i) as? EditText
+                taskEditText?.text?.toString()?.let { task ->
+                    if (task.isNotEmpty()) {
+                        taskList.add(task)
+                    }
+                }
+            }
+        }
+
+        // Check if current user is logged in
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -91,22 +112,22 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             "teamMember" to teamMember,
             "dueDate" to dueDate,
             "taskList" to taskList,
-            "userId" to auth.currentUser?.uid
+            "userId" to currentUser.uid
         )
 
         // Save project data to Firestore
         firestore.collection("projects")
             .add(projectData)
-            .addOnSuccessListener {
+            .addOnSuccessListener { documentReference ->
                 Toast.makeText(requireContext(), "Project added successfully", Toast.LENGTH_SHORT).show()
                 // Navigate to ProjectDetailActivity
                 val intent = Intent(requireContext(), ProjectDetailActivity::class.java).apply {
-                    putExtra("projectId", it.id)
+                    putExtra("projectId", documentReference.id)
                 }
                 startActivity(intent)
             }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to add project", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to add project: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 

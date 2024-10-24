@@ -1,43 +1,70 @@
 package com.example.projectuas
 
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ProjectDetailActivity : AppCompatActivity() {
 
     private lateinit var firestore: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
+    private lateinit var projectId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_project_detail)
 
-        val projectId = intent.getStringExtra("projectId")
-
         firestore = FirebaseFirestore.getInstance()
+        auth = FirebaseAuth.getInstance()
 
-        // Get project data from Firestore
-        projectId?.let {
-            firestore.collection("projects").document(it)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document != null) {
-                        findViewById<TextView>(R.id.tvProjectTitle).text = document.getString("projectTitle")
-                        findViewById<TextView>(R.id.tvProjectDetail).text = document.getString("projectDetail")
-                        findViewById<TextView>(R.id.tvTimeDate).text = document.getString("dueDate")
-                        findViewById<TextView>(R.id.tvTeamMember).text = document.getString("teamMember")
+        // Get the projectId from the Intent
+        projectId = intent.getStringExtra("projectId") ?: ""
 
-                        // Display task list
-                        val taskList = document.get("taskList") as? List<String>
-                        taskList?.forEach { task ->
-                            val textView = TextView(this)
-                            textView.text = task
-                            findViewById<LinearLayout>(R.id.linearLayoutTasks).addView(textView)
-                        }
+        // Load project details
+        loadProjectDetails()
+    }
+
+    private fun loadProjectDetails() {
+        // Reference to the project document in Firestore
+        firestore.collection("projects").document(projectId).get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    // Retrieve project details
+                    val projectTitle = document.getString("projectTitle")
+                    val projectDetail = document.getString("projectDetail")
+                    val dueDate = document.getString("dueDate")
+                    val teamMember = document.getString("teamMember")
+                    val taskList = document.get("taskList") as? List<String>
+
+                    // Update UI elements
+                    findViewById<TextView>(R.id.tvProjectTitle).text = projectTitle
+                    findViewById<TextView>(R.id.tvProjectDetail).text = projectDetail
+                    findViewById<TextView>(R.id.tvDueDate).text = dueDate
+                    findViewById<TextView>(R.id.tvTeamMember).text = teamMember
+
+                    // Handle task list
+                    val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
+                    llTaskList.removeAllViews()
+
+                    taskList?.forEach { task ->
+                        val taskView = layoutInflater.inflate(R.layout.item_task, null)
+                        val taskText = taskView.findViewById<TextView>(R.id.taskName)
+                        val taskIcon = taskView.findViewById<ImageView>(R.id.taskIcon)
+                        taskText.text = task
+                        taskIcon.setImageResource(R.drawable.img)
+                        llTaskList.addView(taskView)
                     }
+                } else {
+                    Toast.makeText(this, "Project not found", Toast.LENGTH_SHORT).show()
                 }
-        }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to load project.", Toast.LENGTH_SHORT).show()
+            }
     }
 }
