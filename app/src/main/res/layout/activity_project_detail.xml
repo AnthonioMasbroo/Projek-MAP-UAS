@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="30dp">
+    android:padding="30dp"
+    tools:context=".ProjectDetailActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -25,7 +26,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:paddingBottom="8dp"/>
+            android:paddingBottom="8dp" />
 
         <!-- Due Date -->
         <TextView
@@ -37,10 +38,10 @@
             android:textSize="16sp"
             android:textColor="@color/tv_color"
             android:layout_marginTop="20dp"
-            app:layout_constraintTop_toBottomOf="@+id/tvProjectTitle"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectTitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:paddingBottom="16dp"/>
+            android:paddingBottom="16dp" />
 
         <!-- Team Member -->
         <TextView
@@ -51,10 +52,10 @@
             android:text="Team Members"
             android:textSize="16sp"
             android:textColor="@color/tv_color"
-            app:layout_constraintTop_toBottomOf="@+id/tvDueDate"
+            app:layout_constraintTop_toBottomOf="@id/tvDueDate"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:paddingBottom="16dp"/>
+            android:paddingBottom="16dp" />
 
         <!-- Project Detail -->
         <TextView
@@ -65,10 +66,10 @@
             android:text="Project Detail"
             android:textSize="20sp"
             android:textColor="@color/tv_color"
-            app:layout_constraintTop_toBottomOf="@+id/tvTeamMember"
+            app:layout_constraintTop_toBottomOf="@id/tvTeamMember"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:paddingBottom="16dp"/>
+            android:paddingBottom="16dp" />
 
         <!-- Task List Section -->
         <TextView
@@ -79,10 +80,21 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/black"
-            app:layout_constraintTop_toBottomOf="@+id/tvProjectDetail"
+            app:layout_constraintTop_toBottomOf="@id/tvProjectDetail"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:paddingBottom="8dp"/>
+            android:paddingBottom="8dp" />
+
+        <!-- Team Member Container -->
+        <LinearLayout
+            android:id="@+id/llTeamMember"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTaskListHeader"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Task List Container -->
         <LinearLayout
@@ -90,10 +102,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@+id/tvTaskListHeader"
+            android:padding="16dp"
+            app:layout_constraintTop_toBottomOf="@id/llTeamMember"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:paddingBottom="16dp"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

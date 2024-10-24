@@ -209,7 +209,6 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
         val projectTitle = view?.findViewById<EditText>(R.id.etProjectTitle)?.text.toString().trim()
         val projectDetail = view?.findViewById<EditText>(R.id.etProjectDetail)?.text.toString().trim()
         val dueDate = view?.findViewById<EditText>(R.id.etDateTime)?.text.toString().trim()
-        val teamMember = view?.findViewById<TextView>(R.id.AddTeamMember)?.text.toString().trim()
         val linearLayoutContainer: LinearLayout? = view?.findViewById(R.id.linearLayoutContainer)
         val linearLayoutContainerTeam: LinearLayout? = view?.findViewById(R.id.linearLayoutContainerTeam)
 
@@ -236,10 +235,11 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
         memberList.clear()
         linearLayoutContainerTeam?.let {
             for (i in 0 until it.childCount) {
-                val memberEditText = it.getChildAt(i) as? EditText
-                memberEditText?.text?.toString()?.let { member ->
-                    if (member.isNotEmpty()) {
-                        memberList.add(member)
+                val horizontalLayout = it.getChildAt(i) as? LinearLayout
+                val emailEditText = horizontalLayout?.getChildAt(0) as? EditText // Ambil EditText pertama untuk email
+                emailEditText?.text?.toString()?.let { email ->
+                    if (email.isNotEmpty()) {
+                        memberList.add(email) // Masukkan email ke dalam memberList
                     }
                 }
             }
@@ -256,7 +256,6 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
         val projectData = hashMapOf(
             "projectTitle" to projectTitle,
             "projectDetail" to projectDetail,
-            "teamMember" to teamMember,
             "dueDate" to dueDate,
             "taskList" to taskList,
             "memberList" to memberList, // Save member list
@@ -278,6 +277,8 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                 Toast.makeText(requireContext(), "Failed to add project: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
+
 
     private fun showDatePickerDialog(editText: EditText) {
         val calendar = Calendar.getInstance()
