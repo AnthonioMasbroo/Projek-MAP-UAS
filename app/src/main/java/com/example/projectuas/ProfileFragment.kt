@@ -1,5 +1,6 @@
 package com.example.projectuas
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,8 +9,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Switch
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.projectuas.R
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class ProfileFragment : Fragment() {
 
@@ -17,15 +21,23 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
 
-        // Setup click listeners and other logic here
+        // Ambil data dari SharedPreferences
+        val sharedPref = requireActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
+        val username = sharedPref.getString("username", "Guest User")
+        val email = sharedPref.getString("email", "guest@example.com")
+
+        // Set data ke UI
+        val profileNameTextView: TextView = view.findViewById(R.id.profileName)
+        val profileEmailTextView: TextView = view.findViewById(R.id.profileEmail)
+
+        profileNameTextView.text = username
+        profileEmailTextView.text = email
 
         // Handle Edit Profile click
         val editProfileLayout: LinearLayout = view.findViewById(R.id.editProfileLayout)
         editProfileLayout.setOnClickListener {
-            // Example: You can launch an activity for editing the profile
             val intent = Intent(requireActivity(), EditProfileActivity::class.java)
             startActivity(intent)
         }
@@ -33,14 +45,22 @@ class ProfileFragment : Fragment() {
         // Handle Logout click
         val logoutButton: Button = view.findViewById(R.id.logoutButton)
         logoutButton.setOnClickListener {
-            // Handle logout logic here, for example:
-            // Clear user session and navigate to login screen
-        }
+            // Hapus data dari SharedPreferences saat logout
+            with(sharedPref.edit()) {
+                clear() // Hapus semua data
+                apply()
+            }
 
-        // Handle Notification switch toggle
-        val notificationSwitch: Switch = view.findViewById(R.id.notificationSwitch)
-        notificationSwitch.setOnCheckedChangeListener { _, isChecked ->
-            // Handle notification toggle (enable or disable notifications)
+            val bottomNavigationView = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_navigation)
+            bottomNavigationView.visibility = View.GONE
+
+            // Ganti fragment ke LoginFragment
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, LoginFragment()) // fragment_container adalah ID dari layout container di MainActivity
+                .commit()
+
+            // Opsi: Tampilkan pesan logout berhasil
+            Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
         }
 
         return view
