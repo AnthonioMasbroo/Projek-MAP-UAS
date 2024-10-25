@@ -236,11 +236,12 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
         linearLayoutContainerTeam?.let {
             for (i in 0 until it.childCount) {
                 val horizontalLayout = it.getChildAt(i) as? LinearLayout
-                val emailEditText = horizontalLayout?.getChildAt(0) as? EditText // Ambil EditText pertama untuk email
-                emailEditText?.text?.toString()?.let { email ->
-                    if (email.isNotEmpty()) {
-                        memberList.add(email) // Masukkan email ke dalam memberList
-                    }
+                val emailEditText = horizontalLayout?.getChildAt(0) as? EditText
+                val usernameTextView = horizontalLayout?.getChildAt(1) as? TextView // Username dari card kedua
+
+                if (!emailEditText?.text.isNullOrEmpty() && !usernameTextView?.text.isNullOrEmpty()) {
+                    val member = "${emailEditText?.text.toString()} (${usernameTextView?.text.toString()})"
+                    memberList.add(member) // Masukkan email dan username ke memberList
                 }
             }
         }
@@ -277,8 +278,6 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                 Toast.makeText(requireContext(), "Failed to add project: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
-
-
 
     private fun showDatePickerDialog(editText: EditText) {
         val calendar = Calendar.getInstance()
