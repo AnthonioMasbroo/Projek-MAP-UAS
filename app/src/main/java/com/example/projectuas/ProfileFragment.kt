@@ -7,7 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
+import com.bumptech.glide.Glide
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
@@ -27,15 +29,24 @@ class ProfileFragment : Fragment() {
         val sharedPref = requireActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
         val username = sharedPref.getString("username", "Guest User")
         val email = sharedPref.getString("email", "guest@example.com")
+        val profileImageUri = sharedPref.getString("profileImageUri", null)
 
         // Set data ke UI
         val profileNameTextView: TextView = view.findViewById(R.id.profileName)
         val profileEmailTextView: TextView = view.findViewById(R.id.profileEmail)
+        val profileImageView: ImageView = view.findViewById(R.id.profileImage)
 
         profileNameTextView.text = username
         profileEmailTextView.text = email
 
-        // Handle Edit Profile click
+        // Tampilkan gambar profil jika tersedia
+        profileImageUri?.let {
+            Glide.with(this)
+                .load(it)
+                .into(profileImageView)
+        }
+
+        // Buka EditProfileActivity saat Edit Profile diklik
         val editProfileLayout: LinearLayout = view.findViewById(R.id.editProfileLayout)
         editProfileLayout.setOnClickListener {
             val intent = Intent(requireActivity(), EditProfileActivity::class.java)
