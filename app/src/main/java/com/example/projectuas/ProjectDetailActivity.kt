@@ -1,5 +1,6 @@
 package com.example.projectuas
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
@@ -15,6 +16,7 @@ class ProjectDetailActivity : AppCompatActivity() {
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private lateinit var projectId: String
+    private lateinit var backButton: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +24,9 @@ class ProjectDetailActivity : AppCompatActivity() {
 
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
+
+        // Initialize backButton
+        backButton = findViewById(R.id.backButton)
 
         // Get the projectId from the Intent
         projectId = intent.getStringExtra("projectId") ?: ""
@@ -31,6 +36,12 @@ class ProjectDetailActivity : AppCompatActivity() {
 
         // Load project details
         loadProjectDetails()
+
+        // Back Button Logic
+        backButton.setOnClickListener {
+            finish()  // Tutup aktivitas saat ini dan kembali ke MainActivity
+        }
+
     }
 
     private fun loadProjectDetails() {
@@ -47,8 +58,8 @@ class ProjectDetailActivity : AppCompatActivity() {
 
                     // Update UI elements
                     findViewById<TextView>(R.id.tvProjectTitle).text = projectTitle
-                    findViewById<TextView>(R.id.tvProjectDetail).text = projectDetail
-                    findViewById<TextView>(R.id.tvDueDate).text = dueDate
+                    findViewById<TextView>(R.id.projectDetailContent).text = projectDetail
+                    findViewById<TextView>(R.id.dueDateContent).text = dueDate
 
                     // Display team members
                     val llTeamMember = findViewById<LinearLayout>(R.id.llTeamMember)
