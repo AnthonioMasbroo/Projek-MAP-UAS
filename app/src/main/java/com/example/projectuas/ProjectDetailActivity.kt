@@ -1,6 +1,7 @@
 package com.example.projectuas
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -25,6 +26,9 @@ class ProjectDetailActivity : AppCompatActivity() {
         // Get the projectId from the Intent
         projectId = intent.getStringExtra("projectId") ?: ""
 
+        // Log the projectId to verify if it's correct
+        Log.d("ProjectDetailActivity", "Project ID: $projectId")
+
         // Load project details
         loadProjectDetails()
     }
@@ -38,15 +42,15 @@ class ProjectDetailActivity : AppCompatActivity() {
                     val projectTitle = document.getString("projectTitle")
                     val projectDetail = document.getString("projectDetail")
                     val dueDate = document.getString("dueDate")
-                    val memberList = document.get("memberList") as? List<String> // Dapatkan memberList sebagai List
-                    val taskList = document.get("taskList") as? List<String>
+                    val memberList = document.get("memberList") as? List<String> // Dapatkan memberList
+                    val taskList = document.get("taskList") as? List<String> // Dapatkan taskList
 
                     // Update UI elements
                     findViewById<TextView>(R.id.tvProjectTitle).text = projectTitle
                     findViewById<TextView>(R.id.tvProjectDetail).text = projectDetail
                     findViewById<TextView>(R.id.tvDueDate).text = dueDate
 
-                    // Handle team member list
+                    // Display team members
                     val llTeamMember = findViewById<LinearLayout>(R.id.llTeamMember)
                     llTeamMember.removeAllViews() // Clear existing views
                     memberList?.forEach { member ->
@@ -55,27 +59,30 @@ class ProjectDetailActivity : AppCompatActivity() {
                             textSize = 16f
                             setPadding(0, 10, 0, 10)
                         }
-                        llTeamMember.addView(memberTextView) // Tambahkan setiap anggota tim ke UI
+                        llTeamMember.addView(memberTextView)
                     }
 
-                    // Handle task list
+                    // Display task list
                     val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
                     llTaskList.removeAllViews() // Clear existing views
                     taskList?.forEach { task ->
-                        val taskView = layoutInflater.inflate(R.layout.item_task, null)
-                        val taskText = taskView.findViewById<TextView>(R.id.taskName)
-                        val taskIcon = taskView.findViewById<ImageView>(R.id.taskIcon)
-                        taskText.text = task
-                        taskIcon.setImageResource(R.drawable.img)
-                        llTaskList.addView(taskView) // Tambahkan setiap task ke UI
+                        val taskTextView = TextView(this).apply {
+                            text = task
+                            textSize = 16f
+                            setPadding(0, 10, 0, 10)
+                        }
+                        llTaskList.addView(taskTextView)
                     }
                 } else {
+                    Log.d("ProjectDetailActivity", "Document not found for project ID: $projectId")
                     Toast.makeText(this, "Project not found", Toast.LENGTH_SHORT).show()
                 }
             }
-            .addOnFailureListener {
-                Toast.makeText(this, "Failed to load project.", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener { exception ->
+                Log.e("ProjectDetailActivity", "Error loading project: ${exception.message}")
+                Toast.makeText(this, "Failed to load project: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
     }
 }
+
 
