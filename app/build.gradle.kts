@@ -37,10 +37,12 @@ android {
 }
 
 dependencies {
-
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
     implementation ("com.google.android.material:material:1.9.0")
     implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
     implementation ("com.google.firebase:firebase-auth:21.0.1")
+    implementation ("com.google.firebase:firebase-storage:20.0.1")
     implementation ("com.google.firebase:firebase-firestore:24.4.0")
     implementation ("com.google.firebase:firebase-auth-ktx")
     implementation ("com.google.firebase:firebase-firestore-ktx")
@@ -51,6 +53,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
