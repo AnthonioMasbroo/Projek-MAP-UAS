@@ -1,5 +1,7 @@
 package com.example.projectuas
 
+import android.annotation.SuppressLint
+import android.app.ActionBar.LayoutParams
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -44,6 +46,7 @@ class ProjectDetailActivity : AppCompatActivity() {
 
     }
 
+    @SuppressLint("NewApi")
     private fun loadProjectDetails() {
         // Reference to the project document in Firestore
         firestore.collection("projects").document(projectId).get()
@@ -77,12 +80,24 @@ class ProjectDetailActivity : AppCompatActivity() {
                     val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
                     llTaskList.removeAllViews() // Clear existing views
                     taskList?.forEach { task ->
+                        val taskCard = LinearLayout(this).apply{
+                            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                                    setMargins(0, 20, 0, 0)
+                            }
+                            setBackgroundResource(R.drawable.input_date)
+                            setPadding(50, 50, 50, 50)
+                        }
+
                         val taskTextView = TextView(this).apply {
                             text = task
                             textSize = 16f
+                            setTextColor(resources.getColor(R.color.bg, null))
+                            typeface = resources.getFont(R.font.poppinsmedium)
                             setPadding(0, 10, 0, 10)
                         }
-                        llTaskList.addView(taskTextView)
+                        taskCard.addView(taskTextView)
+                        llTaskList.addView(taskCard)
                     }
                 } else {
                     Log.d("ProjectDetailActivity", "Document not found for project ID: $projectId")
