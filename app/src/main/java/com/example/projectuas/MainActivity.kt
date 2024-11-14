@@ -3,6 +3,7 @@ package com.example.projectuas
 import android.content.Context
 import com.google.firebase.FirebaseApp
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -27,6 +28,13 @@ class MainActivity : AppCompatActivity() {
                 .replace(R.id.fragment_container, LoginFragment())
                 .commit()
         }
+
+        // Cek jika ada flag untuk navigasi ke fragment
+                if (intent.getStringExtra("navigateTo") == "HomeFragment") {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, HomeFragment())  // Pastikan container ID benar
+                        .commit()
+                }
 
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -73,5 +81,13 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Tampilkan BottomNavigation saat kembali ke HomeFragment
+        if (supportFragmentManager.findFragmentById(R.id.fragment_container) is HomeFragment) {
+            bottomNavigationView.visibility = View.VISIBLE
+        }
     }
 }
