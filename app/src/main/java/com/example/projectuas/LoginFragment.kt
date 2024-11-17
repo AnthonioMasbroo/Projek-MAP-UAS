@@ -2,7 +2,6 @@ package com.example.projectuas
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -87,15 +86,17 @@ class LoginFragment : Fragment() {
                                     .addOnSuccessListener { document ->
                                         if (document.exists()) {
                                             val fetchedUsername = document.getString("username")
-                                            val fetchedEmail = document.getString("email") // Misalnya kamu juga ingin simpan email
+                                            val fetchedEmail = document.getString("email")
+                                            val fetchedProfileImageUrl = document.getString("profileImageUrl")
 
                                             if (fetchedUsername != null && fetchedEmail != null) {
-                                                // Simpan username dan email ke SharedPreferences
+                                                // Simpan username, email, dan profileImageUrl ke SharedPreferences
                                                 val sharedPref = requireActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
                                                 with(sharedPref.edit()) {
                                                     putString("username", fetchedUsername)
                                                     putString("email", fetchedEmail)
-                                                    apply() // Simpan perubahan
+                                                    putString("profileImageUri", fetchedProfileImageUrl) // Simpan URL gambar profil
+                                                    apply()
                                                 }
 
                                                 // Panggil onLoginSuccess di MainActivity

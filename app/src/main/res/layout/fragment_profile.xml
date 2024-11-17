@@ -11,6 +11,31 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- Tombol Kembali -->
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginStart="30dp"
+            android:background="@drawable/outline_arrow_circle_left_24"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Judul Profil -->
+        <TextView
+            android:id="@+id/profileTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="43dp"
+            android:layout_marginLeft="10dp"
+            android:text="Profile"
+            android:textSize="18sp"
+            android:textColor="@color/tv_color"
+            android:fontFamily="@font/poppinsmedium"
+            app:layout_constraintLeft_toRightOf="@id/backButton"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <!-- Gambar Profil -->
         <ImageView
             android:id="@+id/profileImage"
@@ -28,7 +53,7 @@
             android:id="@+id/profileName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Gilbert Bert Berty"
+            android:text="Gilbert Bert Berty lol"
             android:textSize="20sp"
             android:fontFamily="@font/poppinsbold"
             app:layout_constraintTop_toBottomOf="@id/profileImage"
@@ -64,15 +89,23 @@
             android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp">
 
+            <ImageView
+                android:id="@+id/editProfileIcon"
+                android:layout_width="24sp"
+                android:layout_height="24sp"
+                android:layout_gravity="center"
+                android:layout_marginStart="10dp"
+                android:src="@drawable/ic_edit_profile" />
+
             <TextView
                 android:id="@+id/editProfileText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poppinsmedium"
                 android:layout_gravity="center"
+                android:layout_marginStart="40dp"
+                android:fontFamily="@font/poppinsmedium"
                 android:text="Edit Profile"
-                android:textSize="18sp"
-                android:layout_marginStart="0dp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
         <!-- Notification Switch -->
@@ -107,7 +140,7 @@
         </LinearLayout>
 
         <!-- Tombol Logout -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/logoutButton"
             android:layout_width="0dp"
             android:layout_height="60dp"
@@ -116,13 +149,13 @@
             android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:layout_marginTop="32dp"
-            android:backgroundTint="@color/logout"
+            app:icon="@drawable/ic_logout"
+            style="@style/LogoutButtonStyle"
             app:layout_constraintTop_toBottomOf="@id/notificationLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

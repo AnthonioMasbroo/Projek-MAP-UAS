@@ -30,11 +30,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Cek jika ada flag untuk navigasi ke fragment
-                if (intent.getStringExtra("navigateTo") == "HomeFragment") {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, HomeFragment())  // Pastikan container ID benar
-                        .commit()
-                }
+        if (intent.getStringExtra("navigateTo") == "HomeFragment") {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, HomeFragment())  // Pastikan container ID benar
+                .commit()
+        }
 
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
