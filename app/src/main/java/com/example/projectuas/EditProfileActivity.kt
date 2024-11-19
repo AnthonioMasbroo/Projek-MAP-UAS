@@ -1,13 +1,15 @@
 package com.example.projectuas
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.Settings
+import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -16,49 +18,65 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.projectuas.R
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
 
-private val PICK_IMAGE_REQUEST = 1
-private var imageUri: Uri? = null
+private const val PICK_IMAGE_REQUEST = 1
+private const val CAMERA_REQUEST_CODE = 2
+private const val STORAGE_REQUEST_CODE = 3
 
 class EditProfileActivity : AppCompatActivity() {
 
     private lateinit var editProfileName: EditText
     private lateinit var auth: FirebaseAuth
-    private val CAMERA_REQUEST_CODE = 2
-    private val STORAGE_REQUEST_CODE = 3
+    private lateinit var firestore: FirebaseFirestore
+    private lateinit var storage: FirebaseStorage
+    private lateinit var sharedPref: android.content.SharedPreferences
+    private var imageUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_profile)
 
         auth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
+        storage = FirebaseStorage.getInstance()
+        sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
 
-        // Back Button Logic
+        // Inisialisasi View
+        editProfileName = findViewById(R.id.editProfileName)
+        val profileImageView: ImageView = findViewById(R.id.editProfileImage)
+        val editProfileImageIcon: ImageView = findViewById(R.id.editProfileImageIcon)
         val backButton: ImageView = findViewById(R.id.backButton)
+        val saveButton: Button = findViewById(R.id.saveButton)
+
+        // Set nama awal dari SharedPreferences
+        val currentName = sharedPref.getString("username", "")
+        editProfileName.setText(currentName)
+
+        // Tampilkan gambar profil jika tersedia
+        val profileImageUrl = sharedPref.getString("profileImageUri", null)
+        profileImageUrl?.let {
+            Glide.with(this)
+                .load(it)
+                .circleCrop() // Membuat gambar menjadi bulat
+                .into(profileImageView)
+        }
+
+        // Inisialisasi ikon edit gambar profil
+        editProfileImageIcon.setOnClickListener {
+            openGalleryToPickImage()
+        }
+
+        // Tombol Kembali
         backButton.setOnClickListener {
             finish()  // Mengakhiri aktivitas dan kembali ke halaman sebelumnya
         }
 
-        // Ambil referensi dari EditText untuk nama
-        editProfileName = findViewById(R.id.editProfileName)
-
-        // Set nama awal dari SharedPreferences
-        val sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
-        val currentName = sharedPref.getString("username", "")
-        editProfileName.setText(currentName)
-
-        // Ambil referensi ImageView untuk gambar profil
-        val editProfileImageIcon: ImageView = findViewById(R.id.editProfileImageIcon)
-        editProfileImageIcon.setOnClickListener {
-            checkCameraPermissionsAndOpenCamera()
-        }
-
         // Save Button Logic
-        val saveButton: Button = findViewById(R.id.saveButton)
         saveButton.setOnClickListener {
             saveProfile()
         }
@@ -68,21 +86,47 @@ class EditProfileActivity : AppCompatActivity() {
         // Ambil nama baru dari EditText
         val newName = editProfileName.text.toString()
 
+        // Validasi input
+        if (newName.isEmpty()) {
+            Toast.makeText(this, "Nama tidak boleh kosong", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // Simpan nama baru ke SharedPreferences
-        val sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
         with(sharedPref.edit()) {
             putString("username", newName)
             apply()
         }
 
+        // Update nama di Firestore
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            firestore.collection("users").document(userId)
+                .update("username", newName)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Profil diperbarui berhasil!", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Gagal memperbarui profil: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } else {
+            Toast.makeText(this, "User tidak terautentikasi", Toast.LENGTH_SHORT).show()
+        }
+
         // Menampilkan pesan bahwa profil telah disimpan
-        Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Profil diperbarui berhasil!", Toast.LENGTH_SHORT).show()
 
         // Kembali ke halaman Profile
         finish()
     }
 
     // Buka galeri untuk memilih gambar
+    private fun openGalleryToPickImage() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+
     private fun checkCameraPermissionsAndOpenCamera() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -110,11 +154,21 @@ class EditProfileActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == STORAGE_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 openCamera()
             } else {
-                Toast.makeText(this, "Permission denied to access camera", Toast.LENGTH_SHORT)
-                    .show()
+                // Periksa apakah pengguna telah menolak izin secara permanen
+                val cameraPermissionDenied = !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)
+                val storagePermissionDenied = !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+                if (cameraPermissionDenied || storagePermissionDenied) {
+                    // Pengguna telah menolak izin secara permanen
+                    showPermissionDeniedDialog()
+                } else {
+                    // Pengguna telah menolak izin tanpa memilih "Don't ask again"
+                    Toast.makeText(this, "Izin ditolak untuk mengakses kamera dan penyimpanan", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -127,38 +181,129 @@ class EditProfileActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        val profileImageView: ImageView = findViewById(R.id.editProfileImage)
+
         if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             val bitmap = data.extras?.get("data") as Bitmap
-            val profileImageView: ImageView = findViewById(R.id.editProfileImage)
             profileImageView.setImageBitmap(bitmap) // Tampilkan gambar di ImageView
 
             // Simpan gambar ke Firebase Storage
             saveImageToFirebase(bitmap)
+        } else if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            val selectedImageUri: Uri? = data.data
+            selectedImageUri?.let {
+                profileImageView.setImageURI(it)
+                uploadImageToFirebase(it)
+            }
         }
     }
 
     // Fungsi untuk menyimpan gambar ke Firebase Storage
     private fun saveImageToFirebase(bitmap: Bitmap) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("profile_images/${auth.currentUser?.uid}.jpg")
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            Toast.makeText(this, "User tidak terautentikasi", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val storageRef = storage.reference.child("profile_images/$userId.jpg")
         val baos = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val data = baos.toByteArray()
 
-        val uploadTask = storageRef.putBytes(data)
-        uploadTask.addOnSuccessListener {
-            storageRef.downloadUrl.addOnSuccessListener { uri ->
-                val sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
-                with(sharedPref.edit()) {
-                    putString("profileImageUri", uri.toString())
-                    apply()
+        storageRef.putBytes(data)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    // Simpan URL ke SharedPreferences dan Firestore
+                    with(sharedPref.edit()) {
+                        putString("profileImageUri", uri.toString())
+                        apply()
+                    }
+
+                    firestore.collection("users").document(userId)
+                        .update("profileImageUrl", uri.toString())
+                        .addOnSuccessListener {
+                            // Tampilkan gambar dengan Glide dan circular crop
+                            Glide.with(this)
+                                .load(uri)
+                                .circleCrop()
+                                .into(findViewById(R.id.editProfileImage))
+
+                            Toast.makeText(this, "Gambar profil diperbarui", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(this, "Gagal menyimpan gambar profil: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                 }
-                Toast.makeText(this, "Profile image saved successfully!", Toast.LENGTH_SHORT).show()
             }
-        }.addOnFailureListener { exception ->
-            // Tambahkan logging kesalahan
-            Log.e("EditProfileActivity", "Failed to upload image: ${exception.message}")
-            Toast.makeText(this, "Failed to save image: ${exception.message}", Toast.LENGTH_SHORT).show()
-        }
+            .addOnFailureListener { exception ->
+                Log.e("EditProfileActivity", "Gagal mengupload gambar: ${exception.message}")
+                Toast.makeText(this, "Gagal menyimpan gambar: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
+    // Fungsi untuk mengupload gambar dari URI ke Firebase Storage
+    private fun uploadImageToFirebase(uri: Uri) {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            Toast.makeText(this, "User tidak terautentikasi", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val storageRef = storage.reference.child("profile_images/$userId.jpg")
+        storageRef.putFile(uri)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                    // Simpan URL ke SharedPreferences dan Firestore
+                    with(sharedPref.edit()) {
+                        putString("profileImageUri", downloadUri.toString())
+                        apply()
+                    }
+
+                    firestore.collection("users").document(userId)
+                        .update("profileImageUrl", downloadUri.toString())
+                        .addOnSuccessListener {
+                            // Tampilkan gambar dengan Glide dan circular crop
+                            Glide.with(this)
+                                .load(downloadUri)
+                                .circleCrop()
+                                .into(findViewById(R.id.editProfileImage))
+
+                            Toast.makeText(this, "Gambar profil diperbarui", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(this, "Gagal menyimpan gambar profil: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("EditProfileActivity", "Gagal mengupload gambar: ${exception.message}")
+                Toast.makeText(this, "Gagal menyimpan gambar: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // Fungsi untuk membuka pengaturan aplikasi
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri: Uri = Uri.fromParts("package", packageName, null)
+        intent.data = uri
+        startActivity(intent)
+    }
+
+    // Fungsi untuk menampilkan dialog penolakan izin permanen
+    private fun showPermissionDeniedDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Izin Diperlukan")
+            .setMessage("Aplikasi ini memerlukan izin kamera dan penyimpanan untuk memilih gambar profil. Silakan aktifkan izin tersebut di pengaturan aplikasi.")
+            .setPositiveButton("Buka Pengaturan") { dialog, _ ->
+                dialog.dismiss()
+                openAppSettings()
+            }
+            .setNegativeButton("Batal") { dialog, _ ->
+                dialog.dismiss()
+                Toast.makeText(this, "Tidak dapat memilih gambar tanpa izin", Toast.LENGTH_SHORT).show()
+            }
+            .setCancelable(false)
+            .show()
+    }
 }

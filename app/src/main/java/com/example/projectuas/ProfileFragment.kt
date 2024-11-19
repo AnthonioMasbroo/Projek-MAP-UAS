@@ -10,11 +10,9 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import com.bumptech.glide.Glide
-import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.example.projectuas.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class ProfileFragment : Fragment() {
@@ -43,6 +41,7 @@ class ProfileFragment : Fragment() {
         profileImageUri?.let {
             Glide.with(this)
                 .load(it)
+                .circleCrop() // Membuat gambar menjadi bulat
                 .into(profileImageView)
         }
 
@@ -72,6 +71,14 @@ class ProfileFragment : Fragment() {
 
             // Opsi: Tampilkan pesan logout berhasil
             Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+        }
+
+        // Tambahkan logika untuk backButton
+        val backButton: ImageView = view.findViewById(R.id.backButton)
+        backButton.setOnClickListener {
+            // Navigasi kembali ke HomeFragment dengan mengatur item yang dipilih di BottomNavigationView
+            val bottomNavigationView = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_navigation)
+            bottomNavigationView.selectedItemId = R.id.nav_home
         }
 
         return view
