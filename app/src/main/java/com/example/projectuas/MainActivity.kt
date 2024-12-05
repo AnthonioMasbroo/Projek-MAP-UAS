@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.projectuas.models.Project
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
@@ -19,6 +20,39 @@ class MainActivity : AppCompatActivity() {
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
 
+
+        // Tangani intent untuk navigasi ke HomeFragment
+        if (intent.getBooleanExtra("RETURN_TO_HOME", false)) {
+            loadFragment(HomeFragment())
+            bottomNavigationView.visibility = View.VISIBLE
+            bottomNavigationView.selectedItemId = R.id.nav_home
+        } else if (savedInstanceState == null) {
+            // Tampilkan LoginFragment sebagai fragment default
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, LoginFragment())
+                .commit()
+            bottomNavigationView.visibility = BottomNavigationView.GONE
+        }
+
+        // Handle kembali dari ProjectDetailActivity
+        if (intent.getBooleanExtra("LOAD_HOME_FRAGMENT", false)) {
+            loadFragment(HomeFragment())
+            bottomNavigationView.selectedItemId = R.id.nav_home
+            return
+        }
+
+        // Cek apakah ada intent untuk navigasi ke HomeFragment
+        if (intent.getStringExtra("navigateTo") == "HomeFragment") {
+            loadFragment(HomeFragment())
+            bottomNavigationView.visibility = View.VISIBLE
+            bottomNavigationView.selectedItemId = R.id.nav_home
+        } else if (savedInstanceState == null) {
+            // Tampilkan LoginFragment sebagai fragment default
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, LoginFragment())
+                .commit()
+        }
+
         // Awalnya sembunyikan BottomNavigationView sampai login sukses
         bottomNavigationView.visibility = BottomNavigationView.GONE
 
@@ -29,11 +63,18 @@ class MainActivity : AppCompatActivity() {
                 .commit()
         }
 
-        // Cek jika ada flag untuk navigasi ke fragment
-        if (intent.getStringExtra("navigateTo") == "HomeFragment") {
+        // Handle intent extras untuk edit project
+        if (intent.getStringExtra("openFragment") == "add_project") {
+            val projectData = intent.getParcelableExtra<Project>("projectData")
+            val addProjectFragment = AddProjectFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelable("projectData", projectData)
+                }
+            }
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, HomeFragment())  // Pastikan container ID benar
+                .replace(R.id.fragment_container, addProjectFragment)
                 .commit()
+            bottomNavigationView.selectedItemId = R.id.nav_create
         }
 
         bottomNavigationView.setOnItemSelectedListener { item ->
@@ -57,6 +98,7 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
     }
 
     // Fungsi ini dipanggil ketika login sukses dan menerima username
@@ -77,10 +119,15 @@ class MainActivity : AppCompatActivity() {
 
     // Fungsi untuk mengganti fragment
     private fun loadFragment(fragment: Fragment) {
-        // Replace fragment in container
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
-            .commit()
+            .commitAllowingStateLoss()
+
+        if (fragment is HomeFragment) {
+            bottomNavigationView.visibility = View.VISIBLE
+        } else {
+            bottomNavigationView.visibility = View.VISIBLE // Sesuaikan jika diperlukan
+        }
     }
 
     override fun onResume() {
