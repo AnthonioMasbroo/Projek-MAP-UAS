@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -45,6 +46,9 @@ class LoginFragment : Fragment() {
         btnLogin.setOnClickListener {
             val username = etUsername.text.toString()
             val password = etPassword.text.toString()
+
+
+            Log.d("LoginFragment", "Attempting to sign in")
 
             // Reset error messages
             tvEmailError.visibility = View.GONE

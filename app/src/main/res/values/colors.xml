@@ -12,4 +12,6 @@
     <color name="input_date">#455A64</color>
     <color name="button_add_project">#F0B646</color>
     <color name="gray">#888888</color>
+    <color name="green1">#4CAF50</color>
+    <color name="red">#FF0000</color>
 </resources>

@@ -6,9 +6,31 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.projectuas.adapters.PrivateTaskAdapter
+import com.example.projectuas.adapters.ProjectTaskAdapter
+import com.example.projectuas.models.PrivateTask
+import com.example.projectuas.models.ProjectTask
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(),
+    PrivateTaskAdapter.OnDeleteClickListener,
+    ProjectTaskAdapter.OnProjectDeleteClickListener {
+
+    private lateinit var rvProjectTasks: RecyclerView
+    private lateinit var rvPrivateTasks: RecyclerView
+    private lateinit var projectTaskAdapter: ProjectTaskAdapter
+    private lateinit var privateTaskAdapter: PrivateTaskAdapter
+
+    private lateinit var firestore: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
+
+    private val projectTasks = mutableListOf<ProjectTask>()
+    private val privateTasksList = mutableListOf<PrivateTask>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,6 +47,115 @@ class HomeFragment : Fragment() {
         // Tampilkan username di Welcome message
         tvWelcome.text = "Welcome, $username"
 
+        // Inisialisasi RecyclerViews
+        rvProjectTasks = view.findViewById(R.id.rvProjectTasks)
+        rvPrivateTasks = view.findViewById(R.id.rvPrivateTasks)
+
+        firestore = FirebaseFirestore.getInstance()
+        auth = FirebaseAuth.getInstance()
+
+        // Fetch projects from Firestore
+        fetchProjects()
+
         return view
+    }
+
+    private fun fetchProjects() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        firestore.collection("projects")
+            .whereEqualTo("userId", currentUser.uid)
+            .get()
+            .addOnSuccessListener { documents ->
+                projectTasks.clear()
+                privateTasksList.clear()
+
+                for (document in documents) {
+                    val projectName = document.getString("projectTitle") ?: "No Title"
+                    val teamMembers = document.get("memberList") as? List<String> ?: listOf()
+                    val progress = "On Progress" // Atau ambil dari dokumen jika ada
+                    val projectImage1 = R.drawable.user_8109090
+                    val projectImage2 = R.drawable.user_10923836
+                    val projectId = document.id
+
+                    if (teamMembers.isNotEmpty()) {
+                        projectTasks.add(
+                            ProjectTask(
+                                projectId = projectId,
+                                projectName = projectName,
+                                teamMembers = teamMembers,
+                                progress = progress,
+                                projectImage1 = projectImage1,
+                                projectImage2 = projectImage2
+                            )
+                        )
+                    } else {
+                        privateTasksList.add(
+                            PrivateTask(
+                                projectId = projectId,
+                                taskName = projectName,
+                                progress = progress
+                            )
+                        )
+                    }
+                }
+
+                // Siapkan Adapter dan LayoutManager untuk Project Tasks (Horizontal)
+                projectTaskAdapter = ProjectTaskAdapter(projectTasks, this) // 'this' sebagai OnProjectDeleteClickListener
+                rvProjectTasks.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                rvProjectTasks.adapter = projectTaskAdapter
+
+                // Siapkan Adapter dan LayoutManager untuk Private Tasks (Vertical)
+                privateTaskAdapter = PrivateTaskAdapter(privateTasksList, this) // 'this' sebagai OnDeleteClickListener
+                rvPrivateTasks.layoutManager = LinearLayoutManager(context)
+                rvPrivateTasks.adapter = privateTaskAdapter
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Error fetching projects: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // Implementasi Interface OnDeleteClickListener (PrivateTaskAdapter)
+    override fun onDeleteClick(position: Int) {
+        val privateTask = privateTasksList[position]
+        deletePrivateTask(privateTask.projectId, position)
+    }
+
+    // Implementasi Interface OnProjectDeleteClickListener (ProjectTaskAdapter)
+    override fun onProjectDeleteClick(position: Int) {
+        val projectTask = projectTasks[position]
+        deleteProjectTask(projectTask.projectId, position)
+    }
+
+    private fun deletePrivateTask(projectId: String, position: Int) {
+        firestore.collection("projects").document(projectId)
+            .delete()
+            .addOnSuccessListener {
+                // Hapus dari list dan notifikasi adapter
+                privateTasksList.removeAt(position)
+                privateTaskAdapter.notifyItemRemoved(position)
+                Toast.makeText(requireContext(), "Private Task deleted successfully", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to delete task: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun deleteProjectTask(projectId: String, position: Int) {
+        firestore.collection("projects").document(projectId)
+            .delete()
+            .addOnSuccessListener {
+                // Hapus dari list dan notifikasi adapter
+                projectTasks.removeAt(position)
+                projectTaskAdapter.notifyItemRemoved(position)
+                Toast.makeText(requireContext(), "Project deleted successfully", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to delete project: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 }
