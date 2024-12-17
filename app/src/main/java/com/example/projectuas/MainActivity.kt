@@ -34,11 +34,18 @@ class MainActivity : AppCompatActivity() {
             bottomNavigationView.visibility = BottomNavigationView.GONE
         }
 
-        // Handle kembali dari ProjectDetailActivity
-        if (intent.getBooleanExtra("LOAD_HOME_FRAGMENT", false)) {
-            loadFragment(HomeFragment())
-            bottomNavigationView.selectedItemId = R.id.nav_home
-            return
+        // Handle intent extras untuk edit project
+        if (intent.getStringExtra("openFragment") == "add_project") {
+            val projectData = intent.getParcelableExtra<Project>("projectData")
+            val addProjectFragment = AddProjectFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelable("projectData", projectData)
+                }
+            }
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, addProjectFragment)
+                .commit()
+            bottomNavigationView.selectedItemId = R.id.nav_create
         }
 
         // Cek apakah ada intent untuk navigasi ke HomeFragment
