@@ -132,6 +132,12 @@ class ProjectDetailActivity : AppCompatActivity() {
                 }
                 setBackgroundResource(R.drawable.input_date)
                 setPadding(50, 50, 50, 50)
+                setOnClickListener {
+                    val intent = Intent(this@ProjectDetailActivity, TaskDetailActivity::class.java).apply {
+                        putExtra("taskData", task)
+                    }
+                    startActivity(intent)
+                }
             }
 
             val taskTextView = TextView(this).apply {
