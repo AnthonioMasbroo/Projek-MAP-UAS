@@ -29,7 +29,7 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
             val inflater = requireActivity().layoutInflater
             val view = inflater.inflate(R.layout.fragment_add_note_dialog, null)
 
-            val etNoteContent: EditText = view.findViewById(R.id.etNoteContent)
+            etNoteContent = view.findViewById(R.id.etNoteContent)
             val icToDoList: ImageView = view.findViewById(R.id.icToDoList)
             val icAddImage: ImageView = view.findViewById(R.id.icAddImage)
             val icAddVideo: ImageView = view.findViewById(R.id.icAddVideo)
@@ -38,7 +38,7 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
 
             icToDoList.setOnClickListener {
                 val checklist = mutableListOf<ChecklistItem>()
-                val items = etNoteContent.text.toString().split("\n") // Setiap baris sebagai item
+                val items = etNoteContent.text.toString().split("\n")
                 for (item in items) {
                     if (item.isNotBlank()) {
                         checklist.add(ChecklistItem(description = item.trim()))
@@ -71,6 +71,16 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
                 .setTitle("Add New Note")
                 .setNegativeButton("Cancel") { dialog, _ ->
                     dialog.cancel()
+                }
+                .setPositiveButton("Add") { dialog, _ ->
+                    val noteContent = etNoteContent.text.toString()
+                    if (noteContent.isNotBlank()) {
+                        val note = NoteItem(content = noteContent, isChecklist = false)
+                        onNoteAdded(note)
+                        dialog.dismiss()
+                    } else {
+                        Toast.makeText(requireContext(), "Note content cannot be empty", Toast.LENGTH_SHORT).show()
+                    }
                 }
             builder.create()
         } ?: throw IllegalStateException("Activity cannot be null")
@@ -106,7 +116,7 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
         val options = arrayOf("Device", "Record")
         AlertDialog.Builder(requireContext())
             .setTitle("Select Audio Source")
-            .setItems(options) { dialog, which ->
+            .setItems(options) { _, which ->
                 when (which) {
                     0 -> pickAudioFromDevice()
                     1 -> recordAudio()
@@ -132,31 +142,26 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
     }
 
     private fun captureImageFromCamera() {
-        fun captureVideoFromCamera() {
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED
-            ) {
-                val intent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-                startActivityForResult(intent, REQUEST_VIDEO_CAPTURE)
-            } else {
-                requestPermissions(
-                    arrayOf(Manifest.permission.CAMERA),
-                    CAMERA_PERMISSION_REQUEST_CODE
-                )
-            }
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            startActivityForResult(intent, REQUEST_IMAGE_CAMERA)
+        } else {
+            requestPermissions(
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_REQUEST_CODE
+            )
         }
-
     }
 
     private fun captureVideoFromCamera() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED
         ) {
-            // Izin telah diberikan
             val intent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
             startActivityForResult(intent, REQUEST_VIDEO_CAMERA)
         } else {
-            // Minta izin
             requestPermissions(
                 arrayOf(Manifest.permission.CAMERA),
                 CAMERA_PERMISSION_REQUEST_CODE
@@ -174,19 +179,14 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
         startActivityForResult(intent, REQUEST_AUDIO_RECORD)
     }
 
-
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Izin diberikan
-                captureVideoFromCamera()
+                captureImageFromCamera()
             } else {
-                // Izin ditolak
                 Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
             }
         }

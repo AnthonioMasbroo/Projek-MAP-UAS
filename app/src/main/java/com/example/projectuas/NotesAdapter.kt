@@ -96,16 +96,5 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
         }
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return if (notes[position].isChecklist) TYPE_CHECKLIST else TYPE_NOTE
-    }
-
-
-
     override fun getItemCount(): Int = notes.size
-
-    companion object {
-        private const val TYPE_NOTE = 1
-        private const val TYPE_CHECKLIST = 2
-    }
 }

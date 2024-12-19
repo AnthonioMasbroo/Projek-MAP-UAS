@@ -14,8 +14,18 @@ class PrivateTaskAdapter(
     private val listener: OnDeleteClickListener
 ) : RecyclerView.Adapter<PrivateTaskAdapter.PrivateTaskViewHolder>() {
 
+    private var onItemClickListener: OnItemClickListener? = null
+
     interface OnDeleteClickListener {
         fun onDeleteClick(position: Int)
+    }
+
+    interface OnItemClickListener {
+        fun onItemClick(privateTask: PrivateTask)
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        onItemClickListener = listener
     }
 
     inner class PrivateTaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -37,6 +47,10 @@ class PrivateTaskAdapter(
 
         holder.imgDelete.setOnClickListener {
             listener.onDeleteClick(holder.adapterPosition)
+        }
+
+        holder.itemView.setOnClickListener {
+            onItemClickListener?.onItemClick(privateTask)
         }
     }
 
