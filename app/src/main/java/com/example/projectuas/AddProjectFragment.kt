@@ -7,8 +7,6 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.widget.*
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.projectuas.models.Project
 import com.google.firebase.auth.FirebaseAuth
@@ -17,6 +15,7 @@ import java.util.*
 import android.text.Editable
 import android.text.TextWatcher
 
+@Suppress("DEPRECATION")
 class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
 
     private lateinit var firestore: FirebaseFirestore
@@ -26,22 +25,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
     private var currentProject: Project? = null
     private var currentUserEmail: String? = null
     private var isEditMode = false
-    private lateinit var btnAddProject: Button
 
-
-    private val projectDetailLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == AppCompatActivity.RESULT_OK) {
-            val data = result.data
-            if (data != null && data.hasExtra("projectData")) {
-                currentProject = data.getParcelableExtra<Project>("projectData")
-                currentProject?.let { project ->
-                    fillProjectFields(project)
-                }
-            }
-        }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -130,7 +114,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setPadding(50, 50, 20, 50)
             setTextColor(resources.getColor(R.color.bg, null))
             typeface = resources.getFont(R.font.poppinsmedium)
-            setTextSize(20f)
+            textSize = 20f
         }
         linearLayoutContainer?.addView(newTaskEditText)
     }
@@ -189,7 +173,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setTextColor(resources.getColor(R.color.tv_color, null))
             setHintTextColor(resources.getColor(R.color.gray, null))
             typeface = resources.getFont(R.font.poppinsmedium)
-            setTextSize(16f)
+            textSize = 16f
 
             // Listener ketika enter ditekan
             setOnEditorActionListener { _, actionId, event ->
@@ -243,7 +227,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             text = ""
-            setTextSize(16f)
+            textSize = 16f
             setTextColor(resources.getColor(R.color.bg, null))
             typeface = resources.getFont(R.font.poppinsmedium)
             maxLines = 2
@@ -417,7 +401,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setPadding(50, 50, 20, 50)
             setTextColor(resources.getColor(R.color.bg, null))
             typeface = resources.getFont(R.font.poppinsmedium)
-            setTextSize(20f)
+            textSize = 20f
             setText(task)
         }
         linearLayoutContainer?.addView(newTaskEditText)
@@ -463,7 +447,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setTextColor(resources.getColor(R.color.tv_color, null))
             setHintTextColor(resources.getColor(R.color.gray, null))
             typeface = resources.getFont(R.font.poppinsmedium)
-            setTextSize(16f)
+            textSize = 16f
             isEnabled = false // Nonaktifkan edit agar tidak diubah setelah diisi
 
             // Listener ketika enter ditekan (tidak diperlukan saat mengisi dari data yang ada)
@@ -488,7 +472,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             text = username
-            setTextSize(16f)
+            textSize = 16f
             setTextColor(resources.getColor(R.color.bg, null))
             typeface = resources.getFont(R.font.poppinsmedium)
             maxLines = 2
