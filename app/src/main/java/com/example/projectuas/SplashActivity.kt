@@ -1,34 +1,60 @@
 package com.example.projectuas
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.activity.enableEdgeToEdge
+import android.view.View
+import android.view.WindowManager
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_splash)
 
-        val mainView = findViewById<ConstraintLayout>(R.id.main)
-
-        ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        // Set full screen dengan menangani notch
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
-        // Menggunakan Handler untuk menunda perpindahan ke MainActivity
+        @Suppress("DEPRECATION")
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+
+        setContentView(R.layout.activity_splash)
+
+        val splashImage: ImageView = findViewById(R.id.splash_image)
+        adjustImageAspectRatio(splashImage)
+
         Handler(Looper.getMainLooper()).postDelayed({
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, MainActivity::class.java))
             finish()
-        }, 3000) // 3000 ms = 3 detik
+        }, 3000)
+    }
+
+    private fun adjustImageAspectRatio(imageView: ImageView) {
+        val displayMetrics = resources.displayMetrics
+        val screenHeight = displayMetrics.heightPixels
+        val screenWidth = displayMetrics.widthPixels
+
+        // Sesuaikan ukuran gambar berdasarkan aspek ratio layar
+        imageView.post {
+            val drawable = imageView.drawable
+            if (drawable != null) {
+                val imageRatio = drawable.intrinsicWidth.toFloat() / drawable.intrinsicHeight.toFloat()
+                val screenRatio = screenWidth.toFloat() / screenHeight.toFloat()
+
+                if (imageRatio > screenRatio) {
+                    imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+                } else {
+                    imageView.scaleType = ImageView.ScaleType.FIT_XY
+                }
+            }
+        }
     }
 }
