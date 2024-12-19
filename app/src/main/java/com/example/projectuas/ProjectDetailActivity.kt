@@ -11,6 +11,8 @@ import com.example.projectuas.models.Project
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import android.annotation.SuppressLint
+import android.widget.Toast
+import android.util.Log
 
 class ProjectDetailActivity : AppCompatActivity() {
 
@@ -30,63 +32,57 @@ class ProjectDetailActivity : AppCompatActivity() {
         backButton = findViewById(R.id.backButton)
         btnEdit = findViewById(R.id.btnEdit)
 
-        project = intent.getParcelableExtra<Project>("projectData") ?: Project("", "", "", listOf(), listOf(), "")
+        // Ensure projectData is present and has documentId
+        project = intent.getParcelableExtra<Project>("projectData") ?: run {
+            Toast.makeText(this, "Project data missing", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        Log.d("ProjectDetailActivity", "Project Data: $project")
+
+        if (project.documentId.isEmpty()) {
+            Toast.makeText(this, "Invalid project data", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         displayProjectDetails()
 
-        // Back Button Logic dengan implementasi baru
+        // Back Button Logic
         backButton.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            startActivity(intent)
-            finish()
+            navigateToHome()
         }
 
         // Edit Button Logic
         btnEdit.setOnClickListener {
-            val bundle = Bundle().apply {
-                putParcelable("projectData", project)
-            }
-
-            val addProjectFragment = AddProjectFragment().apply {
-                arguments = bundle
-            }
-
+            // Tambahkan flag khusus untuk memastikan mode edit
             val intent = Intent(this, MainActivity::class.java).apply {
-                putExtra("openFragment", "add_project")
+                putExtra("MODE", "EDIT_PROJECT")
                 putExtra("projectData", project)
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("isEditMode", true)  // Flag tambahan
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             startActivity(intent)
             finish()
         }
     }
 
-    private fun returnToHome() {
-        // Membuat intent baru untuk MainActivity
+    private fun navigateToHome() {
         val intent = Intent(this, MainActivity::class.java)
-        // Membersihkan semua activity yang ada di stack
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-        // Menambahkan flag khusus untuk HomeFragment
-        intent.putExtra("RETURN_TO_HOME", true)
+        intent.apply {
+            putExtra("MODE", "HOME")
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
         startActivity(intent)
-        // Menutup activity saat ini
         finish()
     }
 
     // Override onBackPressed untuk menangani tombol back hardware
     @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            putExtra("RETURN_TO_HOME", true)
-        }
-        startActivity(intent)
-        finish()
+        navigateToHome()
     }
-
-
-
 
     @SuppressLint("NewApi")
     private fun displayProjectDetails() {
