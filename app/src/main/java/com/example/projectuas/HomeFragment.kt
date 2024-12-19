@@ -1,6 +1,7 @@
 package com.example.projectuas
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -113,6 +114,15 @@ class HomeFragment : Fragment(),
                 privateTaskAdapter = PrivateTaskAdapter(privateTasksList, this) // 'this' sebagai OnDeleteClickListener
                 rvPrivateTasks.layoutManager = LinearLayoutManager(context)
                 rvPrivateTasks.adapter = privateTaskAdapter
+
+                privateTaskAdapter.setOnItemClickListener(object : PrivateTaskAdapter.OnItemClickListener {
+                    override fun onItemClick(privateTask: PrivateTask) {
+                        val intent = Intent(requireContext(), ProjectDetailActivity::class.java).apply {
+                            putExtra("projectData", privateTask)
+                        }
+                        startActivity(intent)
+                    }
+                })
             }
             .addOnFailureListener { e ->
                 Toast.makeText(requireContext(), "Error fetching projects: ${e.message}", Toast.LENGTH_SHORT).show()

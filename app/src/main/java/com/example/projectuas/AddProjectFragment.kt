@@ -7,60 +7,89 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.projectuas.models.Project
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
-import android.text.Editable
-import android.text.TextWatcher
+import android.util.Log
 
-@Suppress("DEPRECATION")
-class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
+open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
 
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private lateinit var taskList: MutableList<String>
     private lateinit var memberList: MutableList<String>
-    private var currentProject: Project? = null
-    private var currentUserEmail: String? = null
-    private var isEditMode = false
 
+    // Changed to protected as per suggestion
+    protected var currentProject: Project? = null
+    protected var isEditMode = false
+    private var currentUserEmail: String? = null
+    private lateinit var btnAddProject: Button
+
+    private val projectDetailLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == AppCompatActivity.RESULT_OK) {
+            val data = result.data
+            if (data != null && data.hasExtra("projectData")) {
+                currentProject = data.getParcelableExtra<Project>("projectData")
+                currentProject?.let { project ->
+                    fillProjectFields(project)
+                }
+            }
+        }
+    }
+
+    private fun initializeComponents(view: View) {
+        firestore = FirebaseFirestore.getInstance()
+        auth = FirebaseAuth.getInstance()
+        taskList = mutableListOf()
+        memberList = mutableListOf()
+        currentUserEmail = auth.currentUser?.email
+        btnAddProject = view.findViewById(R.id.btnAddProject)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        firestore = FirebaseFirestore.getInstance()
-        auth = FirebaseAuth.getInstance()
+        // Initialize components
+        initializeComponents(view)
 
-        taskList = mutableListOf()
-        memberList = mutableListOf()
-
-        currentUserEmail = auth.currentUser?.email
-
+        // Retrieve UI elements
         val addTaskButton: LinearLayout = view.findViewById(R.id.addTaskButton)
-        val btnAddProject: Button = view.findViewById(R.id.btnAddProject)
         val ivDateTime: ImageView = view.findViewById(R.id.ivDateTime)
         val etDateTime: EditText = view.findViewById(R.id.etDateTime)
         val ivAddTeamMember: ImageView = view.findViewById(R.id.ivAddTeamMember)
 
+        // Handle arguments for edit mode
+        arguments?.let { args ->
+            isEditMode = args.getBoolean("isEditMode", false)
+            val projectData = args.getParcelable<Project>("projectData")
 
+            Log.d("AddProjectFragment", "IsEditMode: $isEditMode")
+            Log.d("AddProjectFragment", "Project Data: $projectData")
 
-        // Cek apakah dalam mode edit
-        arguments?.getParcelable<Project>("projectData")?.let { project ->
-            currentProject = project
-            isEditMode = true
-            fillProjectFields(project)
-            // Ubah text button sesuai mode
-            btnAddProject.text = "Edit Project"
-        } ?: run {
-            isEditMode = false
-            btnAddProject.text = "Create Project"
+            if (isEditMode && projectData != null) {
+                currentProject = projectData
+                fillProjectFields(projectData)
+                Log.d("AddProjectFragment", "Edit mode activated with project: $projectData")
+            }
         }
+
+        // Set button text based on mode
+        btnAddProject.text = if (isEditMode) "Update Project" else "Create Project"
+        Log.d("AddProjectFragment", "Fragment initialized in ${if (isEditMode) "edit" else "create"} mode")
 
         // Handle add task button
         addTaskButton.setOnClickListener {
-            addTaskField()
+            if (canAddNewTaskField()) {
+                addTaskField()
+            } else {
+                Toast.makeText(requireContext(), "Harap isi task sebelumnya terlebih dahulu", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // Handle add member button (icon)
@@ -72,7 +101,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             }
         }
 
-        // Handle create project button
+        // Handle create/edit project button
         btnAddProject.setOnClickListener {
             createProject()
         }
@@ -81,6 +110,18 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
         ivDateTime.setOnClickListener {
             showDatePickerDialog(etDateTime)
         }
+    }
+
+    private fun canAddNewTaskField(): Boolean {
+        val linearLayoutContainer: LinearLayout? = view?.findViewById(R.id.linearLayoutContainer)
+        if (linearLayoutContainer == null || linearLayoutContainer.childCount == 0) {
+            return true
+        }
+
+        val lastTaskLayout = linearLayoutContainer.getChildAt(linearLayoutContainer.childCount - 1) as? LinearLayout
+        val taskEditText = lastTaskLayout?.getChildAt(0) as? EditText
+
+        return taskEditText?.text?.isNotEmpty() == true
     }
 
     private fun canAddNewMemberField(): Boolean {
@@ -96,49 +137,72 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
         return emailEditText?.text?.isNotEmpty() == true
     }
 
-
-
     @SuppressLint("NewApi")
     private fun addTaskField() {
         val linearLayoutContainer: LinearLayout? = view?.findViewById(R.id.linearLayoutContainer)
-        // Dynamically add a new EditText for a task
-        val newTaskEditText = EditText(requireContext()).apply {
+
+        // Create horizontal layout for Task and Delete Button
+        val taskLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
                 setMargins(0, 20, 0, 0)
             }
+        }
+
+        // EditText for Task
+        val newTaskEditText = EditText(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1.0f
+            ).apply {
+                setMargins(0, 0, 20, 0)
+            }
             hint = "Task"
             setBackgroundResource(R.drawable.input_date)
             setPadding(50, 50, 20, 50)
             setTextColor(resources.getColor(R.color.bg, null))
             typeface = resources.getFont(R.font.poppinsmedium)
-            textSize = 20f
+            setTextSize(20f)
         }
-        linearLayoutContainer?.addView(newTaskEditText)
+
+        // Delete Button
+        val btnDeleteTask = ImageButton(requireContext()).apply {
+            setImageResource(R.drawable.ic_delete) // Ensure you have a delete icon in drawable
+            background = null
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setOnClickListener {
+                linearLayoutContainer?.removeView(taskLayout)
+            }
+        }
+
+        taskLayout.addView(newTaskEditText)
+        taskLayout.addView(btnDeleteTask)
+        linearLayoutContainer?.addView(taskLayout)
     }
 
     @SuppressLint("NewApi")
     private fun addMemberField() {
         val linearLayoutContainerTeam: LinearLayout? = view?.findViewById(R.id.linearLayoutContainerTeam)
 
-        // Cek apakah field terakhir telah diisi
+        // Check if the last field is filled
         if (linearLayoutContainerTeam != null && linearLayoutContainerTeam.childCount > 0) {
             val lastMemberLayout = linearLayoutContainerTeam.getChildAt(linearLayoutContainerTeam.childCount - 1) as LinearLayout
-            val emailEditText = lastMemberLayout.getChildAt(0) as? EditText
-            val usernameTextView = lastMemberLayout.getChildAt(1) as? TextView
+            val emailEditText = (lastMemberLayout.getChildAt(0) as? LinearLayout)?.getChildAt(0) as? EditText
 
-            val email = emailEditText?.text.toString().trim()
-            val username = usernameTextView?.text.toString().trim()
-
-            if (email.isEmpty() || username.isEmpty()) {
-                Toast.makeText(requireContext(), "Please fill out the last member's email before adding a new one.", Toast.LENGTH_SHORT).show()
+            if (emailEditText?.text.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), "Harap isi email member sebelumnya terlebih dahulu", Toast.LENGTH_SHORT).show()
                 return
             }
         }
 
-        // Buat layout horizontal untuk Email dan Username
+        // Create horizontal layout for Email, Username, and Delete Button
         val horizontalLayout = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -149,7 +213,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             }
         }
 
-        // Card untuk Email
+        // Card for Email
         val emailCard = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -163,7 +227,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setPadding(30, 30, 30, 30)
         }
 
-        // EditText untuk Email
+        // EditText for Email
         val newMemberEditText = EditText(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -173,16 +237,17 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setTextColor(resources.getColor(R.color.tv_color, null))
             setHintTextColor(resources.getColor(R.color.gray, null))
             typeface = resources.getFont(R.font.poppinsmedium)
-            textSize = 16f
+            setTextSize(16f)
 
-            // Listener ketika enter ditekan
+            // Listener for Enter key
             setOnEditorActionListener { _, actionId, event ->
                 if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE ||
                     event?.keyCode == android.view.KeyEvent.KEYCODE_ENTER
                 ) {
                     val emailInput = text.toString().trim()
                     if (emailInput.isNotEmpty()) {
-                        if (getAddedEmails().contains(emailInput)) {
+                        val currentEmails = getCurrentEnteredEmails()
+                        if (currentEmails.filter { it.equals(emailInput, ignoreCase = true) }.size > 1) {
                             Toast.makeText(requireContext(), "Email sudah ditambahkan", Toast.LENGTH_SHORT).show()
                         } else if (emailInput.equals(currentUserEmail, ignoreCase = true)) {
                             Toast.makeText(requireContext(), "Anda tidak dapat menambahkan diri sendiri", Toast.LENGTH_SHORT).show()
@@ -197,20 +262,9 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             }
         }
 
-        newMemberEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                // Jika EditText tidak kosong, aktifkan tombol tambah anggota
-                // (Jika ada tombol tambah anggota terpisah)
-            }
-        })
-
         emailCard.addView(newMemberEditText)
 
-        // Card untuk Username
+        // Card for Username
         val usernameCard = LinearLayout(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(
                 0,
@@ -227,7 +281,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             text = ""
-            textSize = 16f
+            setTextSize(16f)
             setTextColor(resources.getColor(R.color.bg, null))
             typeface = resources.getFont(R.font.poppinsmedium)
             maxLines = 2
@@ -236,8 +290,22 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
 
         usernameCard.addView(memberNameTextView)
 
+        // Delete Button
+        val btnDeleteMember = ImageButton(requireContext()).apply {
+            setImageResource(R.drawable.ic_delete) // Ensure you have a delete icon in drawable
+            background = null
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setOnClickListener {
+                linearLayoutContainerTeam?.removeView(horizontalLayout)
+            }
+        }
+
         horizontalLayout.addView(emailCard)
         horizontalLayout.addView(usernameCard)
+        horizontalLayout.addView(btnDeleteMember)
 
         linearLayoutContainerTeam?.addView(horizontalLayout)
     }
@@ -262,8 +330,8 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                         val username = document.getString("username")
                         if (!username.isNullOrEmpty()) {
                             memberNameTextView.text = username
-                            // Tidak menambahkan ke memberList di sini
-                            // Penambahan dilakukan di createProject() setelah validasi
+                            // Do not add to memberList here
+                            // Addition is done in createProject() after validation
                         } else {
                             memberNameTextView.text = "Unknown"
                             Toast.makeText(requireContext(), "Username not found for $email", Toast.LENGTH_SHORT).show()
@@ -287,26 +355,26 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
         val linearLayoutContainer: LinearLayout? = view?.findViewById(R.id.linearLayoutContainer)
         val linearLayoutContainerTeam: LinearLayout? = view?.findViewById(R.id.linearLayoutContainerTeam)
 
-        // Validasi input
+        // Validate input
         if (projectTitle.isEmpty() || projectDetail.isEmpty() || dueDate.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill out all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Clear dan ambil semua nilai tugas
+        // Clear and retrieve all task values
         taskList.clear()
         linearLayoutContainer?.let {
             for (i in 0 until it.childCount) {
-                val taskEditText = it.getChildAt(i) as? EditText
-                taskEditText?.text?.toString()?.let { task ->
-                    if (task.isNotEmpty()) {
-                        taskList.add(task)
-                    }
+                val taskLayout = it.getChildAt(i) as? LinearLayout
+                val taskEditText = taskLayout?.getChildAt(0) as? EditText
+                val task = taskEditText?.text.toString().trim()
+                if (task.isNotEmpty()) {
+                    taskList.add(task)
                 }
             }
         }
 
-        // Clear dan ambil semua nilai anggota
+        // Clear and retrieve all member values
         memberList.clear()
         var allMembersValid = true
         linearLayoutContainerTeam?.let {
@@ -359,59 +427,111 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
         saveProjectToFirestore(project)
     }
 
+    private fun getCurrentEnteredEmails(): List<String> {
+        val emails = mutableListOf<String>()
+        val linearLayoutContainerTeam: LinearLayout? = view?.findViewById(R.id.linearLayoutContainerTeam)
+        linearLayoutContainerTeam?.let {
+            for (i in 0 until it.childCount) {
+                val horizontalLayout = it.getChildAt(i) as? LinearLayout
+                val emailCard = horizontalLayout?.getChildAt(0) as? LinearLayout
+                val emailEditText = emailCard?.getChildAt(0) as? EditText
+                val email = emailEditText?.text.toString().trim()
+                if (email.isNotEmpty()) {
+                    emails.add(email)
+                }
+            }
+        }
+        return emails
+    }
 
     @SuppressLint("NewApi")
-    private fun fillProjectFields(project: Project) {
-        // Isi EditTexts dengan data project
-        view?.findViewById<EditText>(R.id.etProjectTitle)?.setText(project.projectTitle)
-        view?.findViewById<EditText>(R.id.etProjectDetail)?.setText(project.projectDetail)
-        view?.findViewById<EditText>(R.id.etDateTime)?.setText(project.dueDate)
+    protected fun fillProjectFields(project: Project) { // Changed to protected as per suggestion
+        try {
+            Log.d("AddProjectFragment", "Filling project fields: $project")
+            view?.findViewById<EditText>(R.id.etProjectTitle)?.setText(project.projectTitle)
+            view?.findViewById<EditText>(R.id.etProjectDetail)?.setText(project.projectDetail)
+            view?.findViewById<EditText>(R.id.etDateTime)?.setText(project.dueDate)
 
-        // Hapus task yang ada dan tambahkan yang baru
-        val linearLayoutContainer: LinearLayout? = view?.findViewById(R.id.linearLayoutContainer)
-        linearLayoutContainer?.removeAllViews()
-        project.taskList.forEach { task ->
-            addTaskFieldWithText(task)
-        }
+            // Clear existing fields
+            view?.findViewById<LinearLayout>(R.id.linearLayoutContainer)?.removeAllViews()
+            view?.findViewById<LinearLayout>(R.id.linearLayoutContainerTeam)?.removeAllViews()
 
-        // Hapus member yang ada dan tambahkan yang baru
-        val linearLayoutContainerTeam: LinearLayout? = view?.findViewById(R.id.linearLayoutContainerTeam)
-        linearLayoutContainerTeam?.removeAllViews()
-        project.memberList.forEach { member ->
-            val memberParts = member.split(" (")
-            val email = memberParts.getOrNull(0) ?: ""
-            val username = memberParts.getOrNull(1)?.removeSuffix(")") ?: ""
+            // Fill tasks
+            project.taskList.forEach { task ->
+                addTaskFieldWithText(task)
+            }
 
-            addMemberFieldWithText(email, username)
+            // Fill members
+            project.memberList.forEach { member ->
+                val parts = member.split(" (")
+                val email = parts[0]
+                val username = parts.getOrNull(1)?.removeSuffix(")") ?: ""
+                addMemberFieldWithText(email, username)
+            }
+
+            Log.d("AddProjectFragment", "Successfully filled all project fields")
+        } catch (e: Exception) {
+            Log.e("AddProjectFragment", "Error filling project fields", e)
+            Toast.makeText(context, "Error loading project data", Toast.LENGTH_SHORT).show()
         }
     }
 
     @SuppressLint("NewApi")
     private fun addTaskFieldWithText(task: String) {
         val linearLayoutContainer: LinearLayout? = view?.findViewById(R.id.linearLayoutContainer)
-        val newTaskEditText = EditText(requireContext()).apply {
+
+        // Create horizontal layout for Task and Delete Button
+        val taskLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
                 setMargins(0, 20, 0, 0)
             }
+        }
+
+        // EditText for Task
+        val newTaskEditText = EditText(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1.0f
+            ).apply {
+                setMargins(0, 0, 20, 0)
+            }
             hint = "Task"
             setBackgroundResource(R.drawable.input_date)
             setPadding(50, 50, 20, 50)
             setTextColor(resources.getColor(R.color.bg, null))
             typeface = resources.getFont(R.font.poppinsmedium)
-            textSize = 20f
+            setTextSize(20f)
             setText(task)
         }
-        linearLayoutContainer?.addView(newTaskEditText)
+
+        // Delete Button
+        val btnDeleteTask = ImageButton(requireContext()).apply {
+            setImageResource(R.drawable.ic_delete) // Ensure you have a delete icon in drawable
+            background = null
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setOnClickListener {
+                linearLayoutContainer?.removeView(taskLayout)
+            }
+        }
+
+        taskLayout.addView(newTaskEditText)
+        taskLayout.addView(btnDeleteTask)
+        linearLayoutContainer?.addView(taskLayout)
     }
 
     @SuppressLint("NewApi")
     private fun addMemberFieldWithText(email: String, username: String) {
         val linearLayoutContainerTeam: LinearLayout? = view?.findViewById(R.id.linearLayoutContainerTeam)
 
-        // Buat layout horizontal untuk Email dan Username
+        // Create horizontal layout for Email and Username
         val horizontalLayout = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -422,7 +542,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             }
         }
 
-        // Card untuk Email
+        // Card for Email
         val emailCard = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -436,7 +556,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setPadding(30, 30, 30, 30)
         }
 
-        // EditText untuk Email
+        // EditText for Email
         val newMemberEditText = EditText(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -447,15 +567,15 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             setTextColor(resources.getColor(R.color.tv_color, null))
             setHintTextColor(resources.getColor(R.color.gray, null))
             typeface = resources.getFont(R.font.poppinsmedium)
-            textSize = 16f
-            isEnabled = false // Nonaktifkan edit agar tidak diubah setelah diisi
+            setTextSize(16f)
+            isEnabled = false // Disable editing after pre-filling
 
-            // Listener ketika enter ditekan (tidak diperlukan saat mengisi dari data yang ada)
+            // Listener not needed when pre-filling data
         }
 
         emailCard.addView(newMemberEditText)
 
-        // Card untuk Username
+        // Card for Username
         val usernameCard = LinearLayout(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(
                 0,
@@ -472,7 +592,7 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             text = username
-            textSize = 16f
+            setTextSize(16f)
             setTextColor(resources.getColor(R.color.bg, null))
             typeface = resources.getFont(R.font.poppinsmedium)
             maxLines = 2
@@ -486,7 +606,6 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
 
         linearLayoutContainerTeam?.addView(horizontalLayout)
     }
-
 
     private fun showDatePickerDialog(editText: EditText) {
         val calendar = Calendar.getInstance()
@@ -528,16 +647,8 @@ class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                // Create updated Project object with document ID
-                val updatedProject = Project(
-                    projectTitle = project.projectTitle,
-                    projectDetail = project.projectDetail,
-                    dueDate = project.dueDate,
-                    taskList = project.taskList,
-                    memberList = project.memberList,
-                    userId = project.userId,
-                    documentId = documentRef.id
-                )
+                // Update Project object with document ID
+                val updatedProject = project.copy(documentId = documentRef.id)
 
                 // Navigate to ProjectDetailActivity
                 val intent = Intent(requireContext(), ProjectDetailActivity::class.java)
