@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -18,7 +19,7 @@ data class NoteItem(
     val isAudio: Boolean = false,
     val isFile: Boolean = false,
     val uri: Uri? = null,
-    val checklistItems: List<ChecklistItem>? = null
+    val checklistItems: List<ChecklistItem> = listOf()
 )
 
 data class ChecklistItem(
@@ -35,6 +36,7 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
         val audioView: ImageView = itemView.findViewById(R.id.audioView)
         val fileView: ImageView = itemView.findViewById(R.id.fileView)
         val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
+        val checklistContainer: LinearLayout = itemView.findViewById(R.id.checklistContainer)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
@@ -44,17 +46,35 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val note = notes[position]
-        holder.textView.text = note.content
+
         if (note.isChecklist) {
             holder.textView.visibility = View.GONE
             holder.checkBox.visibility = View.VISIBLE
             holder.checkBox.text = note.content
+
+            // Menampilkan checklist items
+            if (note.checklistItems.isNotEmpty()) {
+                holder.checklistContainer.visibility = View.VISIBLE
+                holder.checklistContainer.removeAllViews()
+                note.checklistItems.forEach { checklistItem ->
+                    val checkBox = CheckBox(holder.itemView.context).apply {
+                        text = checklistItem.description
+                        isChecked = checklistItem.isChecked
+                        isEnabled = false // Nonaktifkan untuk tampilan
+                    }
+                    holder.checklistContainer.addView(checkBox)
+                }
+            } else {
+                holder.checklistContainer.visibility = View.GONE
+            }
         } else {
             holder.textView.visibility = View.VISIBLE
             holder.checkBox.visibility = View.GONE
             holder.textView.text = note.content
+            holder.checklistContainer.visibility = View.GONE
         }
 
+        // Menampilkan Image
         if (note.isImage && note.uri != null) {
             holder.imageView.visibility = View.VISIBLE
             holder.imageView.setImageURI(note.uri)
@@ -62,6 +82,7 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
             holder.imageView.visibility = View.GONE
         }
 
+        // Menampilkan Video
         if (note.isVideo && note.uri != null) {
             holder.videoView.visibility = View.VISIBLE
             holder.videoView.setOnClickListener {
@@ -73,6 +94,7 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
             holder.videoView.visibility = View.GONE
         }
 
+        // Menampilkan Audio
         if (note.isAudio && note.uri != null) {
             holder.audioView.visibility = View.VISIBLE
             holder.audioView.setOnClickListener {
@@ -84,6 +106,7 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
             holder.audioView.visibility = View.GONE
         }
 
+        // Menampilkan File
         if (note.isFile && note.uri != null) {
             holder.fileView.visibility = View.VISIBLE
             holder.fileView.setOnClickListener {

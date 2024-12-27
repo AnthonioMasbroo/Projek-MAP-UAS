@@ -130,7 +130,8 @@ class ProjectDetailActivity : AppCompatActivity() {
                 setPadding(50, 50, 50, 50)
                 setOnClickListener {
                     val intent = Intent(this@ProjectDetailActivity, TaskDetailActivity::class.java).apply {
-                        putExtra("taskData", task)
+                        putExtra("taskName", task) // 'task' adalah nama task dari taskList
+                        putExtra("projectId", project.documentId)
                     }
                     startActivity(intent)
                 }

@@ -18,6 +18,17 @@ class ProjectTaskAdapter(
         fun onProjectDeleteClick(position: Int)
     }
 
+    interface OnProjectClickListener {
+        fun onProjectClick(projectId: String)
+    }
+
+    // Fungsi untuk set click listener
+    fun setOnProjectClickListener(listener: OnProjectClickListener) {
+        onProjectClickListener = listener
+    }
+
+    private var onProjectClickListener: OnProjectClickListener? = null
+
     inner class ProjectTaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvProjectName: TextView = itemView.findViewById(R.id.tvProjectName)
         val imgProfile1: ImageView = itemView.findViewById(R.id.imgProfile1)
@@ -41,8 +52,14 @@ class ProjectTaskAdapter(
         holder.tvTeamMembers.text = "Team members (${projectTask.teamMembers.size})"
         holder.tvProgress.text = projectTask.progress
 
+        // Click listener untuk delete
         holder.imgDelete.setOnClickListener {
             listener.onProjectDeleteClick(holder.adapterPosition)
+        }
+
+        // Click listener untuk seluruh item
+        holder.itemView.setOnClickListener {
+            onProjectClickListener?.onProjectClick(projectTask.projectId)
         }
     }
 

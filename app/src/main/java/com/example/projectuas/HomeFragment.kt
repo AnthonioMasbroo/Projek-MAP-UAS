@@ -17,6 +17,7 @@ import com.example.projectuas.models.PrivateTask
 import com.example.projectuas.models.ProjectTask
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.projectuas.models.Project
 
 class HomeFragment : Fragment(),
     PrivateTaskAdapter.OnDeleteClickListener,
@@ -116,11 +117,67 @@ class HomeFragment : Fragment(),
                 rvPrivateTasks.adapter = privateTaskAdapter
 
                 privateTaskAdapter.setOnItemClickListener(object : PrivateTaskAdapter.OnItemClickListener {
-                    override fun onItemClick(privateTask: PrivateTask) {
-                        val intent = Intent(requireContext(), ProjectDetailActivity::class.java).apply {
-                            putExtra("projectData", privateTask)
-                        }
-                        startActivity(intent)
+                    override fun onItemClick(projectId: String, taskName: String) {
+                        // Fetch full project data dari Firestore
+                        firestore.collection("projects").document(projectId)
+                            .get()
+                            .addOnSuccessListener { document ->
+                                if (document != null && document.exists()) {
+                                    // Convert document ke Project object
+                                    val project = Project(
+                                        documentId = document.id,
+                                        projectTitle = document.getString("projectTitle") ?: "",
+                                        projectDetail = document.getString("projectDetail") ?: "",
+                                        dueDate = document.getString("dueDate") ?: "",
+                                        taskList = (document.get("taskList") as? List<String>) ?: listOf(),
+                                        memberList = (document.get("memberList") as? List<String>) ?: listOf(),
+                                        userId = document.getString("userId") ?: ""
+                                    )
+
+                                    // Navigate ke ProjectDetailActivity
+                                    val intent = Intent(requireContext(), ProjectDetailActivity::class.java)
+                                    intent.putExtra("projectData", project)
+                                    startActivity(intent)
+                                } else {
+                                    Toast.makeText(requireContext(), "Project not found", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(requireContext(), "Error loading project: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                })
+
+                projectTaskAdapter.setOnProjectClickListener(object : ProjectTaskAdapter.OnProjectClickListener {
+                    override fun onProjectClick(projectId: String) {
+                        // Fetch full project data dari Firestore
+                        firestore.collection("projects").document(projectId)
+                            .get()
+                            .addOnSuccessListener { document ->
+                                if (document != null && document.exists()) {
+                                    // Convert document ke Project object
+                                    val project = Project(
+                                        projectTitle = document.getString("projectTitle") ?: "",
+                                        projectDetail = document.getString("projectDetail") ?: "",
+                                        dueDate = document.getString("dueDate") ?: "",
+                                        taskList = (document.get("taskList") as? List<String>) ?: listOf(),
+                                        memberList = (document.get("memberList") as? List<String>) ?: listOf(),
+                                        userId = document.getString("userId") ?: "",
+                                        documentId = document.id
+                                    )
+
+                                    // Navigate ke ProjectDetailActivity
+                                    val intent = Intent(requireContext(), ProjectDetailActivity::class.java).apply {
+                                        putExtra("projectData", project)
+                                    }
+                                    startActivity(intent)
+                                } else {
+                                    Toast.makeText(requireContext(), "Project not found", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(requireContext(), "Error loading project: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                     }
                 })
             }
