@@ -2,7 +2,6 @@ package com.example.projectuas
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -12,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class TaskDetailActivity : AppCompatActivity() {
 
@@ -74,11 +74,6 @@ class TaskDetailActivity : AppCompatActivity() {
 
     private fun fetchTaskNotes(taskName: String) {
         val projectId = intent.getStringExtra("projectId") ?: return
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser == null) {
-            Toast.makeText(this, "Pengguna tidak terautentikasi", Toast.LENGTH_SHORT).show()
-            return
-        }
 
         FirebaseFirestore.getInstance()
             .collection("projects")
@@ -86,56 +81,39 @@ class TaskDetailActivity : AppCompatActivity() {
             .collection("taskList")
             .document(taskName)
             .collection("notes")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { notesSnapshot ->
-                val taskNotes = mutableListOf<NoteItem>()
+                notesList.clear()
 
-                for (noteDoc in notesSnapshot) {
-                    val noteType = noteDoc.getString("type") ?: "text"
+                for (noteDoc in notesSnapshot.documents) {
                     val content = noteDoc.getString("content") ?: ""
-                    val uriString = noteDoc.getString("uri")
-                    val uri = uriString?.let { Uri.parse(it) }
+                    val checklistItems = (noteDoc.get("checklistItems") as? List<Map<String, Any>>)?.map {
+                        ChecklistItem(
+                            description = it["description"] as? String ?: "",
+                            isChecked = it["isChecked"] as? Boolean ?: false
+                        )
+                    } ?: listOf()
 
-                    val note = when (noteType) {
-                        "text" -> NoteItem(content = content)
-                        "image" -> NoteItem(content = "Image Note", isImage = true, uri = uri)
-                        "video" -> NoteItem(content = "Video Note", isVideo = true, uri = uri)
-                        "audio" -> NoteItem(content = "Audio Note", isAudio = true, uri = uri)
-                        "file" -> NoteItem(content = "File Note", isFile = true, uri = uri)
-                        "checklist" -> {
-                            val checklistItems = (noteDoc.get("checklistItems") as? List<Map<String, Any>>)
-                                ?.map { checklistMap ->
-                                    ChecklistItem(
-                                        description = checklistMap["description"] as? String ?: "",
-                                        isChecked = checklistMap["isChecked"] as? Boolean ?: false
-                                    )
-                                } ?: listOf()
-                            NoteItem(content = "Checklist Note", isChecklist = true, checklistItems = checklistItems)
-                        }
-                        else -> NoteItem(content = content)
-                    }
+                    val imageUri = noteDoc.getString("imageUri")?.let { Uri.parse(it) }
+                    val videoUri = noteDoc.getString("videoUri")?.let { Uri.parse(it) }
+                    val audioUri = noteDoc.getString("audioUri")?.let { Uri.parse(it) }
+                    val fileUri = noteDoc.getString("fileUri")?.let { Uri.parse(it) }
 
-                    taskNotes.add(note)
+                    val note = NoteItem(
+                        content = content,
+                        isChecklist = true,
+                        checklistItems = checklistItems,
+                        isImage = imageUri != null,
+                        isVideo = videoUri != null,
+                        isAudio = audioUri != null,
+                        isFile = fileUri != null,
+                        uri = imageUri ?: videoUri ?: audioUri ?: fileUri
+                    )
+                    notesList.add(note)
                 }
-
-                // Perbarui RecyclerView dengan catatan yang ditemukan
-                runOnUiThread {
-                    notesList.clear()
-                    notesList.addAll(taskNotes)
-                    notesAdapter.notifyDataSetChanged()
-
-                    // Tampilkan atau sembunyikan placeholder berdasarkan jumlah catatan
-                    if (notesList.isEmpty()) {
-                        tvNoNotes.visibility = View.VISIBLE
-                    } else {
-                        tvNoNotes.visibility = View.GONE
-                    }
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e("TaskDetailActivity", "Error fetching notes", e) // Logging untuk debugging
-                Toast.makeText(this, "Gagal mengambil catatan: ${e.message}", Toast.LENGTH_SHORT).show()
+                notesAdapter.notifyDataSetChanged()
+                tvNoNotes.visibility = if (notesList.isEmpty()) View.VISIBLE else View.GONE
             }
     }
-
 }

@@ -47,42 +47,42 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val note = notes[position]
 
-        if (note.isChecklist) {
-            holder.textView.visibility = View.GONE
-            holder.checkBox.visibility = View.VISIBLE
-            holder.checkBox.text = note.content
+        // Reset semua view
+        holder.textView.visibility = View.GONE
+        holder.checkBox.visibility = View.GONE
+        holder.checklistContainer.visibility = View.GONE
+        holder.imageView.visibility = View.GONE
+        holder.videoView.visibility = View.GONE
+        holder.audioView.visibility = View.GONE
+        holder.fileView.visibility = View.GONE
 
-            // Menampilkan checklist items
-            if (note.checklistItems.isNotEmpty()) {
-                holder.checklistContainer.visibility = View.VISIBLE
-                holder.checklistContainer.removeAllViews()
-                note.checklistItems.forEach { checklistItem ->
-                    val checkBox = CheckBox(holder.itemView.context).apply {
-                        text = checklistItem.description
-                        isChecked = checklistItem.isChecked
-                        isEnabled = false // Nonaktifkan untuk tampilan
-                    }
-                    holder.checklistContainer.addView(checkBox)
-                }
-            } else {
-                holder.checklistContainer.visibility = View.GONE
-            }
-        } else {
+        // Tampilkan note content jika ada
+        if (note.content.isNotEmpty()) {
             holder.textView.visibility = View.VISIBLE
-            holder.checkBox.visibility = View.GONE
             holder.textView.text = note.content
-            holder.checklistContainer.visibility = View.GONE
         }
 
-        // Menampilkan Image
+        // Tampilkan checklist jika ada
+        if (note.isChecklist && note.checklistItems.isNotEmpty()) {
+            holder.checklistContainer.visibility = View.VISIBLE
+            holder.checklistContainer.removeAllViews()
+            note.checklistItems.forEach { checklistItem ->
+                val checkBox = CheckBox(holder.itemView.context).apply {
+                    text = checklistItem.description
+                    isChecked = checklistItem.isChecked
+                    isEnabled = true
+                }
+                holder.checklistContainer.addView(checkBox)
+            }
+        }
+
+        // Menampilkan Image jika ada
         if (note.isImage && note.uri != null) {
             holder.imageView.visibility = View.VISIBLE
             holder.imageView.setImageURI(note.uri)
-        } else {
-            holder.imageView.visibility = View.GONE
         }
 
-        // Menampilkan Video
+        // Menampilkan Video jika ada
         if (note.isVideo && note.uri != null) {
             holder.videoView.visibility = View.VISIBLE
             holder.videoView.setOnClickListener {
@@ -90,11 +90,9 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
                 intent.setDataAndType(note.uri, "video/*")
                 holder.itemView.context.startActivity(intent)
             }
-        } else {
-            holder.videoView.visibility = View.GONE
         }
 
-        // Menampilkan Audio
+        // Menampilkan Audio jika ada
         if (note.isAudio && note.uri != null) {
             holder.audioView.visibility = View.VISIBLE
             holder.audioView.setOnClickListener {
@@ -102,11 +100,9 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
                 intent.setDataAndType(note.uri, "audio/*")
                 holder.itemView.context.startActivity(intent)
             }
-        } else {
-            holder.audioView.visibility = View.GONE
         }
 
-        // Menampilkan File
+        // Menampilkan File jika ada
         if (note.isFile && note.uri != null) {
             holder.fileView.visibility = View.VISIBLE
             holder.fileView.setOnClickListener {
@@ -114,8 +110,6 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
                 intent.setDataAndType(note.uri, "*/*")
                 holder.itemView.context.startActivity(intent)
             }
-        } else {
-            holder.fileView.visibility = View.GONE
         }
     }
 
