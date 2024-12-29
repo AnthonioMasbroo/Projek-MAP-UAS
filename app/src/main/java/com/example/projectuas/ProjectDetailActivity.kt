@@ -1,24 +1,26 @@
 package com.example.projectuas
 
-import android.annotation.SuppressLint
-import android.app.ActionBar.LayoutParams
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.projectuas.models.Project
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import android.annotation.SuppressLint
+import android.widget.Toast
+import android.util.Log
 
 class ProjectDetailActivity : AppCompatActivity() {
 
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
-    private lateinit var projectId: String
+    private lateinit var project: Project
     private lateinit var backButton: ImageView
+    private lateinit var btnEdit: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,88 +29,123 @@ class ProjectDetailActivity : AppCompatActivity() {
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
-        // Initialize backButton
         backButton = findViewById(R.id.backButton)
+        btnEdit = findViewById(R.id.btnEdit)
 
-        // Get the projectId from the Intent
-        projectId = intent.getStringExtra("projectId") ?: ""
+        // Ensure projectData is present and has documentId
+        project = intent.getParcelableExtra<Project>("projectData") ?: run {
+            Toast.makeText(this, "Project data missing", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
-        // Log the projectId to verify if it's correct
-        Log.d("ProjectDetailActivity", "Project ID: $projectId")
+        Log.d("ProjectDetailActivity", "Project Data: $project")
 
-        // Load project details
-        loadProjectDetails()
+        if (project.documentId.isEmpty()) {
+            Toast.makeText(this, "Invalid project data", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        displayProjectDetails()
 
         // Back Button Logic
         backButton.setOnClickListener {
-            finish()  // Tutup aktivitas saat ini dan kembali ke MainActivity
+            navigateToHome()
         }
 
+        // Edit Button Logic
+        btnEdit.setOnClickListener {
+            // Tambahkan flag khusus untuk memastikan mode edit
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("MODE", "EDIT_PROJECT")
+                putExtra("projectData", project)
+                putExtra("isEditMode", true)  // Flag tambahan
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            startActivity(intent)
+            finish()
+        }
+    }
+
+    private fun navigateToHome() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.apply {
+            putExtra("MODE", "HOME")
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        startActivity(intent)
+        finish()
+    }
+
+    // Override onBackPressed untuk menangani tombol back hardware
+    @SuppressLint("MissingSuperCall")
+    override fun onBackPressed() {
+        navigateToHome()
     }
 
     @SuppressLint("NewApi")
-    private fun loadProjectDetails() {
-        // Reference to the project document in Firestore
-        firestore.collection("projects").document(projectId).get()
-            .addOnSuccessListener { document ->
-                if (document != null) {
-                    // Retrieve project details
-                    val projectTitle = document.getString("projectTitle")
-                    val projectDetail = document.getString("projectDetail")
-                    val dueDate = document.getString("dueDate")
-                    val memberList = document.get("memberList") as? List<String> // Dapatkan memberList
-                    val taskList = document.get("taskList") as? List<String> // Dapatkan taskList
+    private fun displayProjectDetails() {
+        // Kode displayProjectDetails tetap sama
+        findViewById<TextView>(R.id.tvProjectTitle).text = project.projectTitle
+        findViewById<TextView>(R.id.projectDetailContent).text = project.projectDetail
+        findViewById<TextView>(R.id.dueDateContent).text = project.dueDate
 
-                    // Update UI elements
-                    findViewById<TextView>(R.id.tvProjectTitle).text = projectTitle
-                    findViewById<TextView>(R.id.projectDetailContent).text = projectDetail
-                    findViewById<TextView>(R.id.dueDateContent).text = dueDate
+        val llTeamMember = findViewById<LinearLayout>(R.id.llTeamMember)
+        llTeamMember.removeAllViews()
 
-                    // Display team members
-                    val llTeamMember = findViewById<LinearLayout>(R.id.llTeamMember)
-                    llTeamMember.removeAllViews() // Clear existing views
-                    memberList?.forEach { member ->
-                        val memberTextView = TextView(this).apply {
-                            text = member
-                            textSize = 16f
-                            setPadding(0, 10, 0, 10)
-                        }
-                        llTeamMember.addView(memberTextView)
+        if (project.memberList.isEmpty()) {
+            val noMemberTextView = TextView(this).apply {
+                text = "No team members"
+                textSize = 16f
+                setTextColor(resources.getColor(R.color.tv_color, null))
+                typeface = resources.getFont(R.font.poppinsregular)
+                setPadding(0, 10, 0, 10)
+            }
+            llTeamMember.addView(noMemberTextView)
+        } else {
+            project.memberList.forEach { member ->
+                val memberTextView = TextView(this).apply {
+                    text = member.split(" (")[0]
+                    textSize = 16f
+                    setTextColor(resources.getColor(R.color.tv_color, null))
+                    typeface = resources.getFont(R.font.poppinsregular)
+                    setPadding(0, 10, 0, 10)
+                }
+                llTeamMember.addView(memberTextView)
+            }
+        }
+
+        val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
+        llTaskList.removeAllViews()
+        project.taskList.forEach { task ->
+            val taskCard = LinearLayout(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 20, 0, 0)
+                }
+                setBackgroundResource(R.drawable.input_date)
+                setPadding(50, 50, 50, 50)
+                setOnClickListener {
+                    val intent = Intent(this@ProjectDetailActivity, TaskDetailActivity::class.java).apply {
+                        putExtra("taskName", task) // 'task' adalah nama task dari taskList
+                        putExtra("projectId", project.documentId)
                     }
-
-                    // Display task list
-                    val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
-                    llTaskList.removeAllViews() // Clear existing views
-                    taskList?.forEach { task ->
-                        val taskCard = LinearLayout(this).apply{
-                            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                                    setMargins(0, 20, 0, 0)
-                            }
-                            setBackgroundResource(R.drawable.input_date)
-                            setPadding(50, 50, 50, 50)
-                        }
-
-                        val taskTextView = TextView(this).apply {
-                            text = task
-                            textSize = 16f
-                            setTextColor(resources.getColor(R.color.bg, null))
-                            typeface = resources.getFont(R.font.poppinsmedium)
-                            setPadding(0, 10, 0, 10)
-                        }
-                        taskCard.addView(taskTextView)
-                        llTaskList.addView(taskCard)
-                    }
-                } else {
-                    Log.d("ProjectDetailActivity", "Document not found for project ID: $projectId")
-                    Toast.makeText(this, "Project not found", Toast.LENGTH_SHORT).show()
+                    startActivity(intent)
                 }
             }
-            .addOnFailureListener { exception ->
-                Log.e("ProjectDetailActivity", "Error loading project: ${exception.message}")
-                Toast.makeText(this, "Failed to load project: ${exception.message}", Toast.LENGTH_SHORT).show()
+
+            val taskTextView = TextView(this).apply {
+                text = task
+                textSize = 16f
+                setTextColor(resources.getColor(R.color.bg, null))
+                typeface = resources.getFont(R.font.poppinsmedium)
+                setPadding(0, 10, 0, 10)
             }
+            taskCard.addView(taskTextView)
+            llTaskList.addView(taskCard)
+        }
     }
 }
-
-

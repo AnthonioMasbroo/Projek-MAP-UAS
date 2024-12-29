@@ -24,6 +24,23 @@
             tools:layout_editor_absoluteX="30dp"
             tools:ignore="MissingConstraints" />
 
+        <!-- Tombol Edit -->
+
+        <Button
+            android:id="@+id/btnEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="4dp"
+            android:background="@android:color/transparent"
+            android:padding="10dp"
+            android:text="Edit"
+            android:textColor="@color/tv_color"
+            android:textSize="16sp"
+            android:fontFamily="@font/poppinsmedium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/bbProjectDetail"
             android:layout_width="wrap_content"

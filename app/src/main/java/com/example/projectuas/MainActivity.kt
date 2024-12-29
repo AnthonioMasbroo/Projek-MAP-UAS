@@ -1,12 +1,16 @@
 package com.example.projectuas
 
 import android.content.Context
+import android.content.Intent
 import com.google.firebase.FirebaseApp
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.projectuas.models.Project
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,23 +23,9 @@ class MainActivity : AppCompatActivity() {
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
 
-        // Awalnya sembunyikan BottomNavigationView sampai login sukses
-        bottomNavigationView.visibility = BottomNavigationView.GONE
+        setupNavigation(savedInstanceState)
 
-        if (savedInstanceState == null) {
-            // Tampilkan LoginFragment sebagai fragment default
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, LoginFragment())
-                .commit()
-        }
-
-        // Cek jika ada flag untuk navigasi ke fragment
-                if (intent.getStringExtra("navigateTo") == "HomeFragment") {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, HomeFragment())  // Pastikan container ID benar
-                        .commit()
-                }
-
+        // Setup listener untuk BottomNavigationView
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
@@ -59,35 +49,97 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Fungsi ini dipanggil ketika login sukses dan menerima username
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        setupNavigation(null)
+    }
+
     fun onLoginSuccess(username: String) {
-        // Simpan username di SharedPreferences
         val sharedPref = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
         with(sharedPref.edit()) {
             putString("username", username)
-            apply() // Simpan perubahan
+            apply()
         }
-
-        // Buat HomeFragment tanpa perlu kirim bundle, username diambil dari SharedPreferences
         loadFragment(HomeFragment())
-
-        // Tampilkan BottomNavigationView
-        bottomNavigationView.visibility = BottomNavigationView.VISIBLE
+        bottomNavigationView.visibility = View.VISIBLE
     }
 
-    // Fungsi untuk mengganti fragment
+    private fun setupNavigation(savedInstanceState: Bundle?) {
+        val mode = intent.getStringExtra("MODE")
+        val isEditMode = intent.getBooleanExtra("isEditMode", false)
+        Log.d("MainActivity", "Navigation mode: $mode")
+
+        when (mode) {
+            "EDIT_PROJECT" -> {
+                val projectData = intent.getParcelableExtra<Project>("projectData")
+                if (projectData != null && isEditMode) {
+                    val fragment = EditProjectFragment().apply {
+                        arguments = Bundle().apply {
+                            putParcelable("projectData", projectData)
+                            putBoolean("isEditMode", true)
+                        }
+                    }
+                    loadFragment(fragment)
+                    bottomNavigationView.visibility = View.VISIBLE
+                    // Penting: Jangan set selectedItemId disini
+                    Log.d("MainActivity", "Loaded EditProjectFragment with edit mode")
+                } else {
+                    Toast.makeText(this, "Invalid edit mode state", Toast.LENGTH_SHORT).show()
+                    loadFragment(HomeFragment())
+                }
+            }
+            "HOME" -> {
+                loadFragment(HomeFragment())
+                bottomNavigationView.visibility = View.VISIBLE
+                bottomNavigationView.selectedItemId = R.id.nav_home
+            }
+            null -> {
+                if (savedInstanceState == null) {
+                    loadFragment(LoginFragment())
+                    bottomNavigationView.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+
     private fun loadFragment(fragment: Fragment) {
-        // Replace fragment in container
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
-            .commit()
+            .commitAllowingStateLoss()
     }
 
     override fun onResume() {
         super.onResume()
-        // Tampilkan BottomNavigation saat kembali ke HomeFragment
         if (supportFragmentManager.findFragmentById(R.id.fragment_container) is HomeFragment) {
             bottomNavigationView.visibility = View.VISIBLE
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("isEditMode", intent.getBooleanExtra("isEditMode", false))
+        outState.putParcelable("projectData", intent.getParcelableExtra<Project>("projectData"))
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if (savedInstanceState.getBoolean("isEditMode", false)) {
+            val projectData = savedInstanceState.getParcelable<Project>("projectData")
+            if (projectData != null) {
+                setupEditMode(projectData)
+            }
+        }
+    }
+
+    private fun setupEditMode(projectData: Project) {
+        val fragment = EditProjectFragment().apply {
+            arguments = Bundle().apply {
+                putParcelable("projectData", projectData)
+                putBoolean("isEditMode", true)
+            }
+        }
+        loadFragment(fragment)
     }
 }

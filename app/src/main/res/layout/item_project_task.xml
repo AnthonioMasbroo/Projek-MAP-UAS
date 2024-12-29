@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="188dp"
+    android:layout_height="121dp"
+    android:padding="16dp"
+    android:background="@drawable/project_shape_home"
+    android:layout_marginEnd="10dp">
+
+    <!-- Nama Proyek -->
+    <TextView
+        android:id="@+id/tvProjectName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/poppinssemibold"
+        android:text="Project Name"
+        android:textColor="@color/tv_color"
+        android:textSize="16sp"
+        android:textStyle="italic"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Gambar Profile Picture 1 -->
+    <ImageView
+        android:id="@+id/imgProfile1"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="12dp"
+        android:src="@drawable/user_8109090"
+        app:layout_constraintEnd_toStartOf="@id/imgProfile2"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Gambar Profile Picture 2 -->
+    <ImageView
+        android:id="@+id/imgProfile2"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:layout_marginTop="32dp"
+        android:src="@drawable/user_10923836"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvTeamMembers"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:fontFamily="@font/poppinsregular"
+        android:text="Team members (2)"
+        android:textColor="@color/tv_color"
+        android:textSize="10sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvProjectName" />
+
+    <!-- Progress -->
+    <TextView
+        android:id="@+id/tvProgress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:fontFamily="@font/poppinsregular"
+        android:text="On Progress"
+        android:textColor="@color/tv_color"
+        android:textSize="8sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTeamMembers" />
+
+    <!-- Icon Delete -->
+    <ImageView
+        android:id="@+id/imgDelete"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_delete"
+        android:contentDescription="Delete Project"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

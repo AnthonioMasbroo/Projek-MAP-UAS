@@ -1,30 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Text View to display the note -->
+    <!-- TextView untuk Text Note -->
     <TextView
-        android:id="@+id/tvNoteContent"
-        android:layout_width="0dp"
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Note Content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:visibility="gone"/>
 
-    <!-- CheckBox for checklist items -->
+    <!-- CheckBox untuk Checklist Note -->
     <CheckBox
         android:id="@+id/checkBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Checklist item"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@+id/tvNoteContent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:text="Checklist Note"
+        android:visibility="gone"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Container untuk Checklist Items -->
+    <LinearLayout
+        android:id="@+id/checklistContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:visibility="gone"/>
+
+    <!-- ImageView untuk Image Note -->
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"/>
+
+    <!-- ImageView untuk Video Note -->
+    <ImageView
+        android:id="@+id/videoView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_video"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"/>
+
+    <!-- ImageView untuk Audio Note -->
+    <ImageView
+        android:id="@+id/audioView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_audio"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"/>
+
+    <!-- ImageView untuk File Note -->
+    <ImageView
+        android:id="@+id/fileView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_file"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>
