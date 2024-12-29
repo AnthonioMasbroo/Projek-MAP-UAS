@@ -21,7 +21,7 @@ class PrivateTaskAdapter(
     }
 
     interface OnItemClickListener {
-        fun onItemClick(privateTask: PrivateTask)
+        fun onItemClick(projectId: String, taskName: String) // Ubah parameter
     }
 
     fun setOnItemClickListener(listener: OnItemClickListener) {
@@ -50,7 +50,7 @@ class PrivateTaskAdapter(
         }
 
         holder.itemView.setOnClickListener {
-            onItemClickListener?.onItemClick(privateTask)
+            onItemClickListener?.onItemClick(privateTask.projectId, privateTask.taskName)
         }
     }
 
