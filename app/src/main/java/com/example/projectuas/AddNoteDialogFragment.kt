@@ -14,9 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import android.Manifest
-import android.app.Activity
 import android.media.MediaRecorder
-import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -30,6 +28,10 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
     private lateinit var mediaRecorder: MediaRecorder
     private lateinit var audioFile: File
     private lateinit var checklistContainer: LinearLayout
+    private var currentImageUri: Uri? = null
+    private var currentVideoUri: Uri? = null
+    private var currentAudioUri: Uri? = null
+    private var currentFileUri: Uri? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
@@ -74,6 +76,7 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
                     val noteDescription = etNoteContent.text.toString().trim()
                     val checklistItems = mutableListOf<ChecklistItem>()
 
+                    // Mengumpulkan checklist items jika ada
                     for (i in 0 until checklistContainer.childCount) {
                         val checklistView = checklistContainer.getChildAt(i) as LinearLayout
                         val editText = checklistView.findViewById<EditText>(R.id.etChecklistItem)
@@ -82,17 +85,37 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
                         }
                     }
 
-                    if (checklistItems.isNotEmpty() || noteDescription.isNotEmpty()) {
-                        val note = NoteItem(
-                            content = noteDescription,
-                            isChecklist = checklistItems.isNotEmpty(),
-                            checklistItems = checklistItems
-                        )
-                        saveNoteToFirebase(note)
-                        // Jangan tambahkan catatan ke UI di sini
-                    } else {
-                        Toast.makeText(requireContext(), "Please add a note or checklist", Toast.LENGTH_SHORT).show()
+                    // Validasi: setidaknya satu jenis konten harus diisi
+                    if (noteDescription.isEmpty() &&
+                        checklistItems.isEmpty() &&
+                        currentImageUri == null &&
+                        currentVideoUri == null &&
+                        currentAudioUri == null &&
+                        currentFileUri == null) {
+                        Toast.makeText(requireContext(), "Please add at least one type of content", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
                     }
+
+                    // Buat note dengan konten yang ada
+                    val note = NoteItem(
+                        content = noteDescription,
+                        isChecklist = checklistItems.isNotEmpty(),
+                        checklistItems = checklistItems,
+                        isImage = currentImageUri != null,
+                        isVideo = currentVideoUri != null,
+                        isAudio = currentAudioUri != null,
+                        isFile = currentFileUri != null,
+                        uri = when {
+                            currentImageUri != null -> currentImageUri
+                            currentVideoUri != null -> currentVideoUri
+                            currentAudioUri != null -> currentAudioUri
+                            currentFileUri != null -> currentFileUri
+                            else -> null
+                        }
+                    )
+
+                    // Simpan note
+                    saveNoteToFirestore(note)
                 }
             builder.create()
         } ?: throw IllegalStateException("Activity cannot be null")
@@ -110,42 +133,30 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
         checklistContainer.addView(checklistItemView)
     }
 
-
-    private fun saveNoteToFirebase(note: NoteItem) {
+    private fun saveNoteToFirestore(note: NoteItem) {
         val projectId = arguments?.getString("projectId") ?: return
         val taskId = arguments?.getString("taskId") ?: return
 
-        // Tentukan tipe catatan
-        val type = when {
-            note.isChecklist -> "checklist"
-            note.isImage -> "image"
-            note.isVideo -> "video"
-            note.isAudio -> "audio"
-            note.isFile -> "file"
-            else -> "text"
+        // Konversi checklist items ke format yang bisa disimpan di Firestore
+        val checklistItemsForFirestore = note.checklistItems.map { item ->
+            mapOf(
+                "description" to item.description,
+                "isChecked" to item.isChecked
+            )
         }
 
         val noteData = hashMapOf(
-            "content" to note.content,
-            "type" to type,
-            "isChecklist" to note.isChecklist,
-            "checklistItems" to note.checklistItems.map { checklistItem ->
-                mapOf(
-                    "description" to checklistItem.description,
-                    "isChecked" to checklistItem.isChecked
-                )
-            },
-            "isImage" to note.isImage,
-            "isVideo" to note.isVideo,
-            "isAudio" to note.isAudio,
-            "isFile" to note.isFile
+            "content" to etNoteContent.text.toString(),
+            "isChecklist" to true,
+            "checklistItems" to checklistItemsForFirestore,
+            "timestamp" to System.currentTimeMillis()
         )
 
-
-        // Jika ada URI, tambahkan juga
-        note.uri?.let {
-            noteData["uri"] = it.toString()
-        }
+        // Tambahkan media jika ada
+        currentImageUri?.let { noteData["imageUri"] = it.toString() }
+        currentVideoUri?.let { noteData["videoUri"] = it.toString() }
+        currentAudioUri?.let { noteData["audioUri"] = it.toString() }
+        currentFileUri?.let { noteData["fileUri"] = it.toString() }
 
         FirebaseFirestore.getInstance()
             .collection("projects")
@@ -155,14 +166,39 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
             .collection("notes")
             .add(noteData)
             .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Note saved successfully", Toast.LENGTH_SHORT).show()
-                onNoteAdded(note)
+                // Buat checklist items untuk NoteItem
+                val checklistItems = getChecklistItems().map { item ->
+                    ChecklistItem(
+                        description = item.text.toString(),
+                        isChecked = false
+                    )
+                }
+
+                val noteItem = NoteItem(
+                    content = etNoteContent.text.toString(),
+                    isChecklist = true,
+                    checklistItems = checklistItems,
+                    isImage = currentImageUri != null,
+                    isVideo = currentVideoUri != null,
+                    isAudio = currentAudioUri != null,
+                    isFile = currentFileUri != null,
+                    uri = currentImageUri ?: currentVideoUri ?: currentAudioUri ?: currentFileUri
+                )
+                onNoteAdded(noteItem)
                 dialog?.dismiss()
             }
-            .addOnFailureListener { e ->
-                Log.e("AddNoteDialogFragment", "Error saving note", e)
-                Toast.makeText(requireContext(), "Failed to save note", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun getChecklistItems(): List<EditText> {
+        val items = mutableListOf<EditText>()
+        for (i in 0 until checklistContainer.childCount) {
+            val checklistView = checklistContainer.getChildAt(i) as LinearLayout
+            val editText = checklistView.findViewById<EditText>(R.id.etChecklistItem)
+            if (!editText.text.isNullOrEmpty()) {
+                items.add(editText)
             }
+        }
+        return items
     }
 
     fun removeChecklistItem(view: View) {
@@ -346,36 +382,22 @@ class AddNoteDialogFragment(private val onNoteAdded: (NoteItem) -> Unit) : Dialo
             val uri: Uri? = data.data
             when (requestCode) {
                 REQUEST_IMAGE_GALLERY, REQUEST_IMAGE_CAMERA -> {
-                    val note = NoteItem(content = "Image Note", isImage = true, uri = uri)
-                    saveNoteToFirebase(note)
-                    onNoteAdded(note)
+                    currentImageUri = uri
+                    Toast.makeText(requireContext(), "Image added", Toast.LENGTH_SHORT).show()
                 }
                 REQUEST_VIDEO_GALLERY, REQUEST_VIDEO_CAMERA -> {
-                    val note = NoteItem(content = "Video Note", isVideo = true, uri = uri)
-                    saveNoteToFirebase(note)
-                    onNoteAdded(note)
+                    currentVideoUri = uri
+                    Toast.makeText(requireContext(), "Video added", Toast.LENGTH_SHORT).show()
                 }
                 REQUEST_AUDIO_DEVICE, REQUEST_AUDIO_RECORD -> {
-                    val note = NoteItem(content = "Audio Note", isAudio = true, uri = uri)
-                    saveNoteToFirebase(note)
-                    onNoteAdded(note)
+                    currentAudioUri = uri
+                    Toast.makeText(requireContext(), "Audio added", Toast.LENGTH_SHORT).show()
                 }
                 REQUEST_FILE -> {
-                    val note = NoteItem(content = "File Note", isFile = true, uri = uri)
-                    saveNoteToFirebase(note)
-                    onNoteAdded(note)
-                }
-                else -> {
-                    // Default text note
-                    val noteContent = etNoteContent.text.toString()
-                    val note = NoteItem(content = noteContent)
-                    saveNoteToFirebase(note)
-                    onNoteAdded(note)
+                    currentFileUri = uri
+                    Toast.makeText(requireContext(), "File added", Toast.LENGTH_SHORT).show()
                 }
             }
-            dismiss()
-        } else if (resultCode == Activity.RESULT_CANCELED) {
-            Toast.makeText(requireContext(), "Action canceled", Toast.LENGTH_SHORT).show()
         }
     }
 
