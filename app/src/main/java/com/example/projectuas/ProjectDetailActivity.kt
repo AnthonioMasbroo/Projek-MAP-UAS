@@ -47,6 +47,13 @@ class ProjectDetailActivity : AppCompatActivity() {
             return
         }
 
+        // Disable edit button if the project is archived
+        val isArchived = intent.getBooleanExtra("isArchived", false)
+        if (isArchived) {
+            btnEdit.isEnabled = false // Disable button
+            btnEdit.alpha = 0.5f      // Optional: Reduce opacity to indicate disabled state
+        }
+
         displayProjectDetails()
 
         // Back Button Logic

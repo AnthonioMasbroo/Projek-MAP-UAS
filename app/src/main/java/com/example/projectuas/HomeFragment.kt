@@ -20,8 +20,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.projectuas.models.Project
 
 class HomeFragment : Fragment(),
-    PrivateTaskAdapter.OnDeleteClickListener,
-    ProjectTaskAdapter.OnProjectDeleteClickListener {
+    PrivateTaskAdapter.SendToArchiveClickListener,
+    ProjectTaskAdapter.OnProjectDoneClickListener {
 
     private lateinit var rvProjectTasks: RecyclerView
     private lateinit var rvPrivateTasks: RecyclerView
@@ -56,10 +56,13 @@ class HomeFragment : Fragment(),
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
-        // Fetch projects from Firestore
-        fetchProjects()
 
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fetchProjects()
     }
 
     private fun fetchProjects() {
@@ -71,6 +74,7 @@ class HomeFragment : Fragment(),
 
         firestore.collection("projects")
             .whereEqualTo("userId", currentUser.uid)
+            .whereEqualTo("isArchived", false)
             .get()
             .addOnSuccessListener { documents ->
                 projectTasks.clear()
@@ -80,8 +84,7 @@ class HomeFragment : Fragment(),
                     val projectName = document.getString("projectTitle") ?: "No Title"
                     val teamMembers = document.get("memberList") as? List<String> ?: listOf()
                     val progress = "On Progress" // Atau ambil dari dokumen jika ada
-                    val projectImage1 = R.drawable.user_8109090
-                    val projectImage2 = R.drawable.user_10923836
+                    val projectImage1 = R.drawable.img_4
                     val projectId = document.id
 
                     if (teamMembers.isNotEmpty()) {
@@ -91,8 +94,7 @@ class HomeFragment : Fragment(),
                                 projectName = projectName,
                                 teamMembers = teamMembers,
                                 progress = progress,
-                                projectImage1 = projectImage1,
-                                projectImage2 = projectImage2
+                                projectImage1 = projectImage1
                             )
                         )
                     } else {
@@ -187,28 +189,58 @@ class HomeFragment : Fragment(),
     }
 
     // Implementasi Interface OnDeleteClickListener (PrivateTaskAdapter)
-    override fun onDeleteClick(position: Int) {
+    override fun sendToArchiveClick(position: Int) {
         val privateTask = privateTasksList[position]
-        deletePrivateTask(privateTask.projectId, position)
+        archivePrivateTask(privateTask, position)
     }
 
     // Implementasi Interface OnProjectDeleteClickListener (ProjectTaskAdapter)
-    override fun onProjectDeleteClick(position: Int) {
+    override fun onProjectDoneClick(position: Int) {
         val projectTask = projectTasks[position]
         deleteProjectTask(projectTask.projectId, position)
     }
 
-    private fun deletePrivateTask(projectId: String, position: Int) {
-        firestore.collection("projects").document(projectId)
-            .delete()
-            .addOnSuccessListener {
-                // Hapus dari list dan notifikasi adapter
-                privateTasksList.removeAt(position)
-                privateTaskAdapter.notifyItemRemoved(position)
-                Toast.makeText(requireContext(), "Private Task deleted successfully", Toast.LENGTH_SHORT).show()
+    private fun archivePrivateTask(privateTask: PrivateTask, position: Int) {
+        firestore.collection("projects").document(privateTask.projectId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val archiveTask = mapOf(
+                        "projectId" to privateTask.projectId,
+                        "taskName" to privateTask.taskName,
+                        "progress" to privateTask.progress,
+                        "projectDetail" to (document.getString("projectDetail") ?: ""),
+                        "dueDate" to (document.getString("dueDate") ?: ""),
+                        "taskList" to (document.get("taskList") as? List<String> ?: listOf()),
+                        "memberList" to (document.get("memberList") as? List<String> ?: listOf()),
+                        "userId" to (document.getString("userId") ?: "")
+                    )
+
+                    firestore.collection("archive")
+                        .add(archiveTask)
+                        .addOnSuccessListener {
+                            // Hapus dokumen dari koleksi "projects"
+                            firestore.collection("projects").document(privateTask.projectId)
+                                .update("isArchived", true)
+                                .addOnSuccessListener {
+                                    // Hapus dari list lokal dan beri tahu adapter
+                                    privateTasksList.removeAt(position)
+                                    privateTaskAdapter.notifyItemRemoved(position)
+                                    Toast.makeText(requireContext(), "Private Task archived successfully", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(requireContext(), "Failed to delete task from projects: ${e.message}", Toast.LENGTH_LONG).show()
+                                }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(requireContext(), "Failed to archive task: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                } else {
+                    Toast.makeText(requireContext(), "Project not found", Toast.LENGTH_SHORT).show()
+                }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to delete task: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Failed to fetch project: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -225,4 +257,5 @@ class HomeFragment : Fragment(),
                 Toast.makeText(requireContext(), "Failed to delete project: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
 }
