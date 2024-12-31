@@ -20,26 +20,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Gambar Profile Picture 1 -->
     <ImageView
-        android:id="@+id/imgProfile1"
-        android:layout_width="17dp"
-        android:layout_height="17dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="12dp"
-        android:src="@drawable/user_8109090"
-        app:layout_constraintEnd_toStartOf="@id/imgProfile2"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Gambar Profile Picture 2 -->
-    <ImageView
-        android:id="@+id/imgProfile2"
-        android:layout_width="17dp"
-        android:layout_height="17dp"
-        android:layout_marginTop="32dp"
-        android:src="@drawable/user_10923836"
+        android:id="@+id/imgProfile"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/img_4"
+        android:layout_marginTop="2dp"
+        android:layout_marginLeft="30dp"
+        android:contentDescription="Finish Project"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@id/tvTeamMembers"
+        app:layout_constraintTop_toBottomOf="@id/tvProjectName" />
 
     <TextView
         android:id="@+id/tvTeamMembers"
@@ -62,18 +53,21 @@
         android:fontFamily="@font/poppinsregular"
         android:text="On Progress"
         android:textColor="@color/tv_color"
-        android:textSize="8sp"
+        android:textSize="10sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTeamMembers" />
 
-    <!-- Icon Delete -->
+    <!-- Icon Done -->
     <ImageView
-        android:id="@+id/imgDelete"
+        android:id="@+id/imgDoneProject"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:src="@drawable/ic_delete"
-        android:contentDescription="Delete Project"
+        android:src="@drawable/ic_done"
+        android:layout_marginTop="1dp"
+        android:layout_marginLeft="70dp"
+        android:contentDescription="Finish Project"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@id/tvProgress"
+        app:layout_constraintTop_toBottomOf="@id/imgProfile" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

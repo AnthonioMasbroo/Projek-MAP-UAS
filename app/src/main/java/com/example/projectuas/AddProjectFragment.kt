@@ -636,7 +636,8 @@ open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             "dueDate" to project.dueDate,
             "taskList" to project.taskList,
             "memberList" to project.memberList,
-            "userId" to project.userId
+            "userId" to project.userId,
+            "isArchived" to false
         )
 
         documentRef.set(projectData)

@@ -11,11 +11,11 @@ import com.example.projectuas.models.ProjectTask
 
 class ProjectTaskAdapter(
     private val projectTasks: MutableList<ProjectTask>,
-    private val listener: OnProjectDeleteClickListener
+    private val listener: OnProjectDoneClickListener
 ) : RecyclerView.Adapter<ProjectTaskAdapter.ProjectTaskViewHolder>() {
 
-    interface OnProjectDeleteClickListener {
-        fun onProjectDeleteClick(position: Int)
+    interface OnProjectDoneClickListener {
+        fun onProjectDoneClick(position: Int)
     }
 
     interface OnProjectClickListener {
@@ -31,11 +31,10 @@ class ProjectTaskAdapter(
 
     inner class ProjectTaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvProjectName: TextView = itemView.findViewById(R.id.tvProjectName)
-        val imgProfile1: ImageView = itemView.findViewById(R.id.imgProfile1)
-        val imgProfile2: ImageView = itemView.findViewById(R.id.imgProfile2)
+        val imgProfile: ImageView = itemView.findViewById(R.id.imgProfile)
         val tvTeamMembers: TextView = itemView.findViewById(R.id.tvTeamMembers)
         val tvProgress: TextView = itemView.findViewById(R.id.tvProgress)
-        val imgDelete: ImageView = itemView.findViewById(R.id.imgDelete)
+        val imgDoneProject: ImageView = itemView.findViewById(R.id.imgDoneProject)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProjectTaskViewHolder {
@@ -47,14 +46,13 @@ class ProjectTaskAdapter(
     override fun onBindViewHolder(holder: ProjectTaskViewHolder, position: Int) {
         val projectTask = projectTasks[position]
         holder.tvProjectName.text = projectTask.projectName
-        holder.imgProfile1.setImageResource(projectTask.projectImage1)
-        holder.imgProfile2.setImageResource(projectTask.projectImage2)
+        holder.imgProfile.setImageResource(projectTask.projectImage1)
         holder.tvTeamMembers.text = "Team members (${projectTask.teamMembers.size})"
         holder.tvProgress.text = projectTask.progress
 
         // Click listener untuk delete
-        holder.imgDelete.setOnClickListener {
-            listener.onProjectDeleteClick(holder.adapterPosition)
+        holder.imgDoneProject.setOnClickListener {
+            listener.onProjectDoneClick(holder.adapterPosition)
         }
 
         // Click listener untuk seluruh item
