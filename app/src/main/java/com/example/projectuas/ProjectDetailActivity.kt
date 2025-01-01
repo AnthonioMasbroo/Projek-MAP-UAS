@@ -13,6 +13,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import android.annotation.SuppressLint
 import android.widget.Toast
 import android.util.Log
+import android.view.View
 
 class ProjectDetailActivity : AppCompatActivity() {
 
@@ -47,6 +48,8 @@ class ProjectDetailActivity : AppCompatActivity() {
             return
         }
 
+        // Pindahkan checkUserRole() setelah project diinisialisasi
+        checkUserRole()
         displayProjectDetails()
 
         // Back Button Logic
@@ -83,6 +86,16 @@ class ProjectDetailActivity : AppCompatActivity() {
     override fun onBackPressed() {
         navigateToHome()
     }
+
+    private fun checkUserRole() {
+        firestore.collection("projects").document(project.documentId).get()
+            .addOnSuccessListener { doc ->
+                val adminId = doc.getString("adminId")
+                val currentUserId = auth.currentUser?.uid
+                btnEdit.visibility = if (adminId == currentUserId) View.VISIBLE else View.GONE
+            }
+    }
+
 
     @SuppressLint("NewApi")
     private fun displayProjectDetails() {

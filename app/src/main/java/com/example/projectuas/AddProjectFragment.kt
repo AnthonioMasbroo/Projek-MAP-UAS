@@ -609,6 +609,9 @@ open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
 
     private fun showDatePickerDialog(editText: EditText) {
         val calendar = Calendar.getInstance()
+
+        // Tambahkan satu hari untuk menetapkan minimal tanggal yang dapat dipilih adalah besok
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
         val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -618,10 +621,15 @@ open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             editText.setText(selectedDate)
         }, year, month, day)
 
+        // Set minimal tanggal yang dapat dipilih ke besok
+        datePickerDialog.datePicker.minDate = calendar.timeInMillis
+
         datePickerDialog.show()
     }
 
+
     private fun saveProjectToFirestore(project: Project) {
+        val currentUserId = auth.currentUser?.uid ?: ""
         val documentRef = if (isEditMode && currentProject?.documentId?.isNotEmpty() == true) {
             // Update existing document
             firestore.collection("projects").document(currentProject!!.documentId)
@@ -630,13 +638,23 @@ open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             firestore.collection("projects").document()
         }
 
+        // Tambahkan ini sebelum projectData
+        val updatedProject = project.copy(documentId = documentRef.id)
+
         val projectData = hashMapOf(
             "projectTitle" to project.projectTitle,
             "projectDetail" to project.projectDetail,
             "dueDate" to project.dueDate,
             "taskList" to project.taskList,
             "memberList" to project.memberList,
-            "userId" to project.userId
+            "userId" to project.userId,
+            "adminId" to currentUserId,
+            "roles" to mapOf(
+                currentUserId to "admin",
+                *project.memberList.map { member ->
+                    member.substringBefore(" (") to "member"
+                }.toTypedArray()
+            )
         )
 
         documentRef.set(projectData)
@@ -647,10 +665,7 @@ open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                // Update Project object with document ID
-                val updatedProject = project.copy(documentId = documentRef.id)
-
-                // Navigate to ProjectDetailActivity
+                // Gunakan updatedProject yang sudah ada documentId
                 val intent = Intent(requireContext(), ProjectDetailActivity::class.java)
                 intent.putExtra("projectData", updatedProject)
                 startActivity(intent)

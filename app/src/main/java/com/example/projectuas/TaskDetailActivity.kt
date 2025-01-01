@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
@@ -94,26 +93,33 @@ class TaskDetailActivity : AppCompatActivity() {
                             isChecked = it["isChecked"] as? Boolean ?: false
                         )
                     } ?: listOf()
-
                     val imageUri = noteDoc.getString("imageUri")?.let { Uri.parse(it) }
                     val videoUri = noteDoc.getString("videoUri")?.let { Uri.parse(it) }
-                    val audioUri = noteDoc.getString("audioUri")?.let { Uri.parse(it) }
+                    val audioUri = noteDoc.getString("audioUrl")?.let { Uri.parse(it) }
                     val fileUri = noteDoc.getString("fileUri")?.let { Uri.parse(it) }
+                    val fileName = noteDoc.getString("fileName") // Ambil nama file asli
+                    val videoThumbnailUri = noteDoc.getString("videoThumbnailUri") // Ambil thumbnail URI
 
                     val note = NoteItem(
                         content = content,
-                        isChecklist = true,
+                        isChecklist = checklistItems.isNotEmpty(),
                         checklistItems = checklistItems,
                         isImage = imageUri != null,
                         isVideo = videoUri != null,
                         isAudio = audioUri != null,
                         isFile = fileUri != null,
-                        uri = imageUri ?: videoUri ?: audioUri ?: fileUri
+                        fileName = fileName,
+                        uri = if (videoUri != null) videoUri else imageUri ?: audioUri ?: fileUri,
+                        audioUrl = audioUri,
+                        videoThumbnailUri = videoThumbnailUri // Set thumbnail URI
                     )
                     notesList.add(note)
                 }
                 notesAdapter.notifyDataSetChanged()
                 tvNoNotes.visibility = if (notesList.isEmpty()) View.VISIBLE else View.GONE
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Gagal mengambil notes: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 }

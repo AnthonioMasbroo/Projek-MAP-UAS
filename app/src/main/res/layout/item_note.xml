@@ -41,23 +41,89 @@
         android:visibility="gone"
         android:layout_marginTop="8dp"/>
 
-    <!-- ImageView untuk Video Note -->
-    <ImageView
-        android:id="@+id/videoView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_video"
+    <!-- FrameLayout untuk Video Note dan Ikon Play -->
+    <FrameLayout
+        android:id="@+id/videoFrame"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
+
+        <!-- ImageView untuk Thumbnail Video -->
+        <ImageView
+            android:id="@+id/videoView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+        <!-- ImageView untuk Ikon Play -->
+        <ImageView
+            android:id="@+id/playIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_play_circle"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+    </FrameLayout>
+
+
+
+
+    <!-- VideoView untuk Pemutaran Video dalam Aplikasi -->
+    <VideoView
+        android:id="@+id/videoPlaybackView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
         android:visibility="gone"
         android:layout_marginTop="8dp"/>
 
-    <!-- ImageView untuk Audio Note -->
-    <ImageView
-        android:id="@+id/audioView"
-        android:layout_width="wrap_content"
+
+    <!-- Layout untuk Audio Playback -->
+    <LinearLayout
+        android:id="@+id/audioPlaybackLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_audio"
-        android:visibility="gone"
-        android:layout_marginTop="8dp"/>
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageButton
+                android:id="@+id/btnPlayPause"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_play"
+                android:contentDescription="Play/Pause"/>
+
+            <TextView
+                android:id="@+id/tvDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textSize="14sp"
+                android:layout_marginStart="16dp"/>
+        </LinearLayout>
+
+        <!-- Placeholder untuk visualisasi gelombang suara -->
+        <ProgressBar
+            android:id="@+id/progressBarWaveform"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:progress="0"
+            android:max="100"
+            android:layout_marginTop="8dp"
+            android:indeterminate="false"
+            android:visibility="gone"/>
+    </LinearLayout>
+
 
     <!-- ImageView untuk File Note -->
     <ImageView
@@ -67,5 +133,32 @@
         android:src="@drawable/ic_file"
         android:visibility="gone"
         android:layout_marginTop="8dp"/>
+
+    <LinearLayout
+        android:id="@+id/filePreviewLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FED36A"
+        android:padding="16dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/fileIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_file"/>
+
+        <TextView
+            android:id="@+id/fileName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:textColor="#000000"
+            android:textSize="16sp"/>
+    </LinearLayout>
 
 </LinearLayout>

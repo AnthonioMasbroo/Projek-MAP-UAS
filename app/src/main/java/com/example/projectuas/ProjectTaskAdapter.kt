@@ -8,11 +8,15 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.projectuas.R
 import com.example.projectuas.models.ProjectTask
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class ProjectTaskAdapter(
     private val projectTasks: MutableList<ProjectTask>,
     private val listener: OnProjectDeleteClickListener
 ) : RecyclerView.Adapter<ProjectTaskAdapter.ProjectTaskViewHolder>() {
+
+    private val firestore = FirebaseFirestore.getInstance()
 
     interface OnProjectDeleteClickListener {
         fun onProjectDeleteClick(position: Int)
@@ -44,6 +48,15 @@ class ProjectTaskAdapter(
         return ProjectTaskViewHolder(view)
     }
 
+    private fun setDeleteButtonVisibility(holder: ProjectTaskViewHolder, projectId: String) {
+        firestore.collection("projects").document(projectId).get()
+            .addOnSuccessListener { doc ->
+                val adminId = doc.getString("adminId")
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                holder.imgDelete.visibility = if (adminId == currentUserId) View.VISIBLE else View.GONE
+            }
+    }
+
     override fun onBindViewHolder(holder: ProjectTaskViewHolder, position: Int) {
         val projectTask = projectTasks[position]
         holder.tvProjectName.text = projectTask.projectName
@@ -51,6 +64,8 @@ class ProjectTaskAdapter(
         holder.imgProfile2.setImageResource(projectTask.projectImage2)
         holder.tvTeamMembers.text = "Team members (${projectTask.teamMembers.size})"
         holder.tvProgress.text = projectTask.progress
+        holder.imgDelete.visibility = View.GONE // Default hidden
+        setDeleteButtonVisibility(holder, projectTask.projectId)
 
         // Click listener untuk delete
         holder.imgDelete.setOnClickListener {
