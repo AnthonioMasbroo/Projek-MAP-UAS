@@ -51,11 +51,6 @@
         <activity android:name=".EditProfileActivity"></activity>
         <activity android:name=".ProjectDetailActivity"></activity>
         <activity android:name=".VideoPlaybackActivity" />
-        <service
-            android:name=".DeadlineCheckService"
-            android:enabled="true"
-            android:exported="false" />
-
     </application>
 
 </manifest>

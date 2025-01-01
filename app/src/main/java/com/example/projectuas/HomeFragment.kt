@@ -78,43 +78,26 @@ class HomeFragment : Fragment(),
         val sharedPref = requireActivity().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
         val currentUserName = sharedPref.getString("username", "")
 
-        // Query untuk mendapatkan semua projects
+        // Query untuk projects dimana user adalah admin atau member
         firestore.collection("projects")
-            .whereEqualTo("userId", currentUser.uid) // Projects dimana user adalah admin
-            .whereEqualTo("isArchived", false)
+            .whereEqualTo("isArchived", false) // Only non-archived projects
             .get()
-            .addOnSuccessListener { adminDocs ->
+            .addOnSuccessListener { documents ->
                 projectTasks.clear()
                 privateTasksList.clear()
 
-                // Tambahkan projects dimana user adalah admin
-                for (document in adminDocs) {
-                    addProjectToList(document)
-                }
+                for (document in documents) {
+                    // Check if user is admin
+                    val isAdmin = document.getString("userId") == currentUser.uid
+                    // Check if user is member
+                    val memberList = document.get("memberList") as? List<String> ?: listOf()
+                    val isMember = memberList.contains("${currentUser.email} ($currentUserName)")
 
-                // Query kedua untuk projects dimana user adalah member
-                firestore.collection("projects")
-                    .whereArrayContains("memberList", "${currentUser.email} ($currentUserName)")
-                    .get()
-                    .addOnSuccessListener { memberDocs ->
-                        // Tambahkan projects dimana user adalah member
-                        for (document in memberDocs) {
-                            // Skip jika project sudah ada (untuk menghindari duplikat)
-                            if (!projectTasks.any { it.projectId == document.id }) {
-                                addProjectToList(document)
-                            }
-                        }
-
-                        // Update RecyclerViews
-                        updateRecyclerViews()
+                    if (isAdmin || isMember) {
+                        addProjectToList(document)
                     }
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(
-                    requireContext(),
-                    "Error fetching projects: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                }
+                updateRecyclerViews()
             }
     }
 
@@ -238,6 +221,9 @@ class HomeFragment : Fragment(),
     }
 
     private fun archivePrivateTask(privateTask: PrivateTask, position: Int) {
+
+        val currentUser = auth.currentUser
+
         firestore.collection("projects").document(privateTask.projectId)
             .get()
             .addOnSuccessListener { document ->
@@ -250,7 +236,9 @@ class HomeFragment : Fragment(),
                         "dueDate" to (document.getString("dueDate") ?: ""),
                         "taskList" to (document.get("taskList") as? List<String> ?: listOf()),
                         "memberList" to (document.get("memberList") as? List<String> ?: listOf()),
-                        "userId" to (document.getString("userId") ?: "")
+                        "userId" to currentUser?.uid, // Add current user ID
+                        "isArchived" to true
+
                     )
 
                     firestore.collection("archive")

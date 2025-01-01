@@ -14,6 +14,7 @@ import com.example.projectuas.adapters.ProjectTaskAdapter
 import com.example.projectuas.models.PrivateTask
 import com.example.projectuas.models.Project
 import com.example.projectuas.models.ProjectTask
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ArchiveFragment : Fragment(), ArchiveAdapter.OnDeleteClickListener, ArchiveAdapter.OnRestoreClickListener {
@@ -47,7 +48,11 @@ class ArchiveFragment : Fragment(), ArchiveAdapter.OnDeleteClickListener, Archiv
     }
 
     private fun fetchArchivedTasks() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+
         firestore.collection("archive")
+            .whereEqualTo("userId", currentUser?.uid)
             .get()
             .addOnSuccessListener { documents ->
                 archivedTasksList.clear()
