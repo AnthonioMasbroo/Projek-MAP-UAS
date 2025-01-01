@@ -10,8 +10,10 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.projectuas.adapters.ArchiveAdapter
+import com.example.projectuas.adapters.ProjectTaskAdapter
 import com.example.projectuas.models.PrivateTask
 import com.example.projectuas.models.Project
+import com.example.projectuas.models.ProjectTask
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ArchiveFragment : Fragment(), ArchiveAdapter.OnDeleteClickListener, ArchiveAdapter.OnRestoreClickListener {
@@ -19,8 +21,10 @@ class ArchiveFragment : Fragment(), ArchiveAdapter.OnDeleteClickListener, Archiv
     private lateinit var rvArchivedTasks: RecyclerView
     private lateinit var archiveAdapter: ArchiveAdapter
     private lateinit var firestore: FirebaseFirestore
+    private lateinit var archiveProjectTaskAdapter: ProjectTaskAdapter
 
     private val archivedTasksList = mutableListOf<PrivateTask>()
+    private val archivedProjectTasks = mutableListOf<ProjectTask>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -104,6 +108,25 @@ class ArchiveFragment : Fragment(), ArchiveAdapter.OnDeleteClickListener, Archiv
                 Toast.makeText(requireContext(), "Failed to fetch archived tasks: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
+    private fun fetchArchivedProjects() {
+        // Mengambil data dari koleksi "archive" bukan "projects"
+        firestore.collection("archive") // Ganti "projects" dengan "archive"
+            .whereEqualTo("isArchived", true) // Jika perlu filter, atau sesuaikan logikanya
+            .get()
+            .addOnSuccessListener { documents ->
+                archivedProjectTasks.clear() // Kosongkan list sebelumnya
+                for (document in documents) {
+                    val projectTask = document.toObject(ProjectTask::class.java)
+                    archivedProjectTasks.add(projectTask)
+                }
+                archiveProjectTaskAdapter.notifyDataSetChanged() // Notifikasi perubahan data
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Error fetching archived projects: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
 
     // Implementasi Interface OnDeleteClickListener (ArchiveAdapter)
     override fun onDeleteClick(archiveId: String, position: Int) {

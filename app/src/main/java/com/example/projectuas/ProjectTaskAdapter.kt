@@ -11,18 +11,23 @@ import com.example.projectuas.models.ProjectTask
 
 class ProjectTaskAdapter(
     private val projectTasks: MutableList<ProjectTask>,
-    private val listener: OnProjectDoneClickListener
+    private val doneListener: OnProjectDoneClickListener,
+    private val archiveListener: OnProjectArchiveClickListener,
+    private val isArchiveList: Boolean = false // Tambahkan parameter untuk mendukung daftar arsip
 ) : RecyclerView.Adapter<ProjectTaskAdapter.ProjectTaskViewHolder>() {
 
     interface OnProjectDoneClickListener {
         fun onProjectDoneClick(position: Int)
     }
 
+    interface OnProjectArchiveClickListener {
+        fun onProjectArchiveClick(position: Int)
+    }
+
     interface OnProjectClickListener {
         fun onProjectClick(projectId: String)
     }
 
-    // Fungsi untuk set click listener
     fun setOnProjectClickListener(listener: OnProjectClickListener) {
         onProjectClickListener = listener
     }
@@ -50,12 +55,17 @@ class ProjectTaskAdapter(
         holder.tvTeamMembers.text = "Team members (${projectTask.teamMembers.size})"
         holder.tvProgress.text = projectTask.progress
 
-        // Click listener untuk delete
-        holder.imgDoneProject.setOnClickListener {
-            listener.onProjectDoneClick(holder.adapterPosition)
+        if (isArchiveList) {
+            // Untuk daftar arsip: sembunyikan tombol done
+            holder.imgDoneProject.visibility = View.GONE
+        } else {
+            // Untuk daftar biasa: tombol checklist berfungsi sebagai archive
+            holder.imgDoneProject.visibility = View.VISIBLE
+            holder.imgDoneProject.setOnClickListener {
+                archiveListener.onProjectArchiveClick(holder.adapterPosition)
+            }
         }
 
-        // Click listener untuk seluruh item
         holder.itemView.setOnClickListener {
             onProjectClickListener?.onProjectClick(projectTask.projectId)
         }
