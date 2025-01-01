@@ -11,13 +11,13 @@ import com.example.projectuas.models.PrivateTask
 
 class PrivateTaskAdapter(
     private val privateTasks: MutableList<PrivateTask>,
-    private val listener: OnDeleteClickListener
+    private val listener: SendToArchiveClickListener
 ) : RecyclerView.Adapter<PrivateTaskAdapter.PrivateTaskViewHolder>() {
 
     private var onItemClickListener: OnItemClickListener? = null
 
-    interface OnDeleteClickListener {
-        fun onDeleteClick(position: Int)
+    interface SendToArchiveClickListener {
+        fun sendToArchiveClick(position: Int)
     }
 
     interface OnItemClickListener {
@@ -30,7 +30,7 @@ class PrivateTaskAdapter(
 
     inner class PrivateTaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTaskName: TextView = itemView.findViewById(R.id.tvTaskName)
-        val imgDelete: ImageView = itemView.findViewById(R.id.imgDelete)
+        val imgDone: ImageView = itemView.findViewById(R.id.imgDone)
         val tvTaskProgress: TextView = itemView.findViewById(R.id.tvTaskProgress)
     }
 
@@ -45,8 +45,8 @@ class PrivateTaskAdapter(
         holder.tvTaskName.text = privateTask.taskName
         holder.tvTaskProgress.text = privateTask.progress
 
-        holder.imgDelete.setOnClickListener {
-            listener.onDeleteClick(holder.adapterPosition)
+        holder.imgDone.setOnClickListener {
+            listener.sendToArchiveClick(holder.adapterPosition)
         }
 
         holder.itemView.setOnClickListener {

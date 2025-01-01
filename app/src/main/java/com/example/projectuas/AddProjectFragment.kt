@@ -654,7 +654,8 @@ open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                 *project.memberList.map { member ->
                     member.substringBefore(" (") to "member"
                 }.toTypedArray()
-            )
+            ),
+            "isArchived" to false
         )
 
         documentRef.set(projectData)

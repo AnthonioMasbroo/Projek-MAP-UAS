@@ -1,59 +1,191 @@
 package com.example.projectuas
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.projectuas.adapters.ArchiveAdapter
+import com.example.projectuas.adapters.ProjectTaskAdapter
+import com.example.projectuas.models.PrivateTask
+import com.example.projectuas.models.Project
+import com.example.projectuas.models.ProjectTask
+import com.google.firebase.firestore.FirebaseFirestore
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class ArchiveFragment : Fragment(), ArchiveAdapter.OnDeleteClickListener, ArchiveAdapter.OnRestoreClickListener {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [ArchiveFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class ArchiveFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var rvArchivedTasks: RecyclerView
+    private lateinit var archiveAdapter: ArchiveAdapter
+    private lateinit var firestore: FirebaseFirestore
+    private lateinit var archiveProjectTaskAdapter: ProjectTaskAdapter
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private val archivedTasksList = mutableListOf<PrivateTask>()
+    private val archivedProjectTasks = mutableListOf<ProjectTask>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_archive, container, false)
+        val view = inflater.inflate(R.layout.fragment_archive, container, false)
+
+        rvArchivedTasks = view.findViewById(R.id.rvArchivedTasks)
+        firestore = FirebaseFirestore.getInstance()
+
+        // Fetch archived tasks
+        fetchArchivedTasks()
+
+        return view
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ArchiveFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ArchiveFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onResume() {
+        super.onResume()
+        fetchArchivedTasks()
+    }
+
+    private fun fetchArchivedTasks() {
+        firestore.collection("archive")
+            .get()
+            .addOnSuccessListener { documents ->
+                archivedTasksList.clear()
+                for (document in documents) {
+                    val projectId = document.getString("projectId") ?: ""
+                    val taskName = document.getString("taskName") ?: "No Task Name"
+                    val progress = document.getString("progress") ?: "Unknown"
+
+                    archivedTasksList.add(
+                        PrivateTask(
+                            projectId = document.id, // Gunakan document.id untuk referensi dokumen
+                            taskName = taskName,
+                            progress = progress
+                        )
+                    )
                 }
+
+                // Setup Adapter and LayoutManager
+                archiveAdapter = ArchiveAdapter(archivedTasksList, this,this )
+                rvArchivedTasks.layoutManager = LinearLayoutManager(context)
+                rvArchivedTasks.adapter = archiveAdapter
+
+                archiveAdapter.setOnItemClickListener(object : ArchiveAdapter.OnItemClickListener {
+                    override fun onItemClick(archiveId: String, taskName: String) {
+                        // Fetch full project data dari Firestore
+                        firestore.collection("archive").document(archiveId)
+                            .get()
+                            .addOnSuccessListener { document ->
+                                if (document != null && document.exists()) {
+                                    // Convert document ke Project object
+                                    val project = Project(
+                                        documentId = document.getString("projectId") ?: "",
+                                        projectTitle = document.getString("taskName") ?: "",
+                                        projectDetail = document.getString("projectDetail") ?: "",
+                                        dueDate = document.getString("dueDate") ?: "",
+                                        taskList = (document.get("taskList") as? List<String>) ?: listOf(),
+                                        memberList = (document.get("memberList") as? List<String>) ?: listOf(),
+                                        userId = document.getString("userId") ?: ""
+                                    )
+
+                                    // Navigate ke ProjectDetailActivity
+                                    val intent = Intent(requireContext(), ProjectDetailActivity::class.java).apply {
+                                        putExtra("projectData", project)
+                                        putExtra("isArchived", true) // Add this flag
+                                    }
+                                    startActivity(intent)
+                                } else {
+                                    Toast.makeText(requireContext(), "Project not found", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(requireContext(), "Error loading project: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                })
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to fetch archived tasks: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun fetchArchivedProjects() {
+        // Mengambil data dari koleksi "archive" bukan "projects"
+        firestore.collection("archive") // Ganti "projects" dengan "archive"
+            .whereEqualTo("isArchived", true) // Jika perlu filter, atau sesuaikan logikanya
+            .get()
+            .addOnSuccessListener { documents ->
+                archivedProjectTasks.clear() // Kosongkan list sebelumnya
+                for (document in documents) {
+                    val projectTask = document.toObject(ProjectTask::class.java)
+                    archivedProjectTasks.add(projectTask)
+                }
+                archiveProjectTaskAdapter.notifyDataSetChanged() // Notifikasi perubahan data
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Error fetching archived projects: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
+    // Implementasi Interface OnDeleteClickListener (ArchiveAdapter)
+    override fun onDeleteClick(archiveId: String, position: Int) {
+        firestore.collection("archive").document(archiveId)
+            .delete()
+            .addOnSuccessListener {
+                // Hapus dari list dan notifikasi adapter
+                archivedTasksList.removeAt(position)
+                archiveAdapter.notifyItemRemoved(position)
+                Toast.makeText(requireContext(), "Private Task deleted successfully", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to delete task: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // Implementasi Interface OnRestoreClickListener (ArchiveAdapter)
+    override fun onRestoreClick(archiveId: String, position: Int) {
+        // Ambil data dari archive
+        firestore.collection("archive").document(archiveId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val restoredTask = mapOf(
+                        "projectTitle" to document.getString("taskName"),
+                        "progress" to document.getString("progress"),
+                        "isArchived" to false, // Set isArchived menjadi false
+                        "taskList" to document.get("taskList"),
+                        "memberList" to document.get("memberList"),
+                        "userId" to document.getString("userId"),
+                        "dueDate" to document.getString("dueDate"),
+                        "projectDetail" to document.getString("projectDetail")
+                    )
+
+                    // Tambahkan kembali ke koleksi "projects"
+                    firestore.collection("projects")
+                        .add(restoredTask)
+                        .addOnSuccessListener {
+                            // Hapus dari archive
+                            firestore.collection("archive").document(archiveId)
+                                .delete()
+                                .addOnSuccessListener {
+                                    archivedTasksList.removeAt(position)
+                                    archiveAdapter.notifyItemRemoved(position)
+                                    Toast.makeText(requireContext(), "Task restored successfully", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(requireContext(), "Failed to delete from archive: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(requireContext(), "Failed to restore task: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(requireContext(), "Task not found in archive", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Error fetching task: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 }

@@ -21,8 +21,8 @@ import com.example.projectuas.models.Project
 import com.google.firebase.firestore.DocumentSnapshot
 
 class HomeFragment : Fragment(),
-    PrivateTaskAdapter.OnDeleteClickListener,
-    ProjectTaskAdapter.OnProjectDeleteClickListener {
+    PrivateTaskAdapter.SendToArchiveClickListener,
+    ProjectTaskAdapter.OnProjectDoneClickListener {
 
     private lateinit var rvProjectTasks: RecyclerView
     private lateinit var rvPrivateTasks: RecyclerView
@@ -63,6 +63,11 @@ class HomeFragment : Fragment(),
         return view
     }
 
+    override fun onResume() {
+        super.onResume()
+        fetchProjects()
+    }
+
     private fun fetchProjects() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
@@ -76,6 +81,7 @@ class HomeFragment : Fragment(),
         // Query untuk mendapatkan semua projects
         firestore.collection("projects")
             .whereEqualTo("userId", currentUser.uid) // Projects dimana user adalah admin
+            .whereEqualTo("isArchived", false)
             .get()
             .addOnSuccessListener { adminDocs ->
                 projectTasks.clear()
@@ -104,7 +110,11 @@ class HomeFragment : Fragment(),
                     }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error fetching projects: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Error fetching projects: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
     }
 
@@ -112,8 +122,7 @@ class HomeFragment : Fragment(),
         val projectName = document.getString("projectTitle") ?: "No Title"
         val teamMembers = document.get("memberList") as? List<String> ?: listOf()
         val progress = "On Progress"
-        val projectImage1 = R.drawable.user_8109090
-        val projectImage2 = R.drawable.user_10923836
+        val projectImage1 = R.drawable.img_4
         val projectId = document.id
 
         if (teamMembers.isNotEmpty()) {
@@ -123,8 +132,7 @@ class HomeFragment : Fragment(),
                     projectName = projectName,
                     teamMembers = teamMembers,
                     progress = progress,
-                    projectImage1 = projectImage1,
-                    projectImage2 = projectImage2
+                    projectImage1 = projectImage1
                 )
             )
         } else {
@@ -139,10 +147,21 @@ class HomeFragment : Fragment(),
     }
 
     private fun updateRecyclerViews() {
-        // Setup ProjectTask Adapter
-        projectTaskAdapter = ProjectTaskAdapter(projectTasks, this)
-        rvProjectTasks.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        // Siapkan Adapter dan LayoutManager untuk Project Tasks (Horizontal)
+        projectTaskAdapter = ProjectTaskAdapter(
+            projectTasks,
+            doneListener = this, // Untuk mendeteksi tombol "done"
+            archiveListener = object : ProjectTaskAdapter.OnProjectArchiveClickListener {
+                override fun onProjectArchiveClick(position: Int) {
+                    val projectTask = projectTasks[position]
+                    archiveProjectTask(projectTask, position) // Panggil logika archive
+                }
+            }
+        )
+        rvProjectTasks.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         rvProjectTasks.adapter = projectTaskAdapter
+
 
         // Setup PrivateTask Adapter
         privateTaskAdapter = PrivateTaskAdapter(privateTasksList, this)
@@ -160,7 +179,8 @@ class HomeFragment : Fragment(),
             }
         })
 
-        projectTaskAdapter.setOnProjectClickListener(object : ProjectTaskAdapter.OnProjectClickListener {
+        projectTaskAdapter.setOnProjectClickListener(object :
+            ProjectTaskAdapter.OnProjectClickListener {
             override fun onProjectClick(projectId: String) {
                 fetchAndNavigateToProjectDetail(projectId)
             }
@@ -190,33 +210,152 @@ class HomeFragment : Fragment(),
                 }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error loading project: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Error loading project: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(
+                    requireContext(),
+                    "Error fetching projects: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
     }
 
     // Implementasi Interface OnDeleteClickListener (PrivateTaskAdapter)
-    override fun onDeleteClick(position: Int) {
+    override fun sendToArchiveClick(position: Int) {
         val privateTask = privateTasksList[position]
-        deletePrivateTask(privateTask.projectId, position)
+        archivePrivateTask(privateTask, position)
     }
 
     // Implementasi Interface OnProjectDeleteClickListener (ProjectTaskAdapter)
-    override fun onProjectDeleteClick(position: Int) {
+    override fun onProjectDoneClick(position: Int) {
         val projectTask = projectTasks[position]
         deleteProjectTask(projectTask.projectId, position)
     }
 
-    private fun deletePrivateTask(projectId: String, position: Int) {
-        firestore.collection("projects").document(projectId)
-            .delete()
-            .addOnSuccessListener {
-                // Hapus dari list dan notifikasi adapter
-                privateTasksList.removeAt(position)
-                privateTaskAdapter.notifyItemRemoved(position)
-                Toast.makeText(requireContext(), "Private Task deleted successfully", Toast.LENGTH_SHORT).show()
+    private fun archivePrivateTask(privateTask: PrivateTask, position: Int) {
+        firestore.collection("projects").document(privateTask.projectId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val archiveTask = mapOf(
+                        "projectId" to privateTask.projectId,
+                        "taskName" to privateTask.taskName,
+                        "progress" to privateTask.progress,
+                        "projectDetail" to (document.getString("projectDetail") ?: ""),
+                        "dueDate" to (document.getString("dueDate") ?: ""),
+                        "taskList" to (document.get("taskList") as? List<String> ?: listOf()),
+                        "memberList" to (document.get("memberList") as? List<String> ?: listOf()),
+                        "userId" to (document.getString("userId") ?: "")
+                    )
+
+                    firestore.collection("archive")
+                        .add(archiveTask)
+                        .addOnSuccessListener {
+                            // Hapus dokumen dari koleksi "projects"
+                            firestore.collection("projects").document(privateTask.projectId)
+                                .update("isArchived", true)
+                                .addOnSuccessListener {
+                                    // Hapus dari list lokal dan beri tahu adapter
+                                    privateTasksList.removeAt(position)
+                                    privateTaskAdapter.notifyItemRemoved(position)
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Private Task archived successfully",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Failed to delete task from projects: ${e.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                requireContext(),
+                                "Failed to archive task: ${e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                } else {
+                    Toast.makeText(requireContext(), "Project not found", Toast.LENGTH_SHORT).show()
+                }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to delete task: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to fetch project: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+    }
+
+    private fun archiveProjectTask(projectTask: ProjectTask, position: Int) {
+        firestore.collection("projects").document(projectTask.projectId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    // Data untuk koleksi Archive
+                    val archiveTask = mapOf(
+                        "projectId" to projectTask.projectId,
+                        "taskName" to projectTask.projectName, // Menyesuaikan ke taskName
+                        "progress" to projectTask.progress, // Tambahkan progress
+                        "projectDetail" to (document.getString("projectDetail") ?: ""),
+                        "dueDate" to (document.getString("dueDate") ?: ""),
+                        "taskList" to (document.get("taskList") as? List<String> ?: listOf()),
+                        "memberList" to (document.get("memberList") as? List<String> ?: listOf()),
+                        "userId" to (document.getString("userId") ?: "")
+                    )
+
+                    // Tambahkan data ke koleksi Archive
+                    firestore.collection("archive")
+                        .add(archiveTask)
+                        .addOnSuccessListener {
+                            // Perbarui dokumen di koleksi Projects dengan isArchived = true
+                            firestore.collection("projects").document(projectTask.projectId)
+                                .update("isArchived", true)
+                                .addOnSuccessListener {
+                                    // Hapus dari daftar lokal dan beri tahu adapter
+                                    projectTasks.removeAt(position)
+                                    projectTaskAdapter.notifyItemRemoved(position)
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Project Task archived successfully",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Failed to update project status: ${e.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(
+                                requireContext(),
+                                "Failed to archive task: ${e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                } else {
+                    Toast.makeText(requireContext(), "Project not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to fetch project: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
     }
 
@@ -227,10 +366,15 @@ class HomeFragment : Fragment(),
                 // Hapus dari list dan notifikasi adapter
                 projectTasks.removeAt(position)
                 projectTaskAdapter.notifyItemRemoved(position)
-                Toast.makeText(requireContext(), "Project deleted successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Project deleted successfully", Toast.LENGTH_SHORT)
+                    .show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to delete project: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to delete project: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
     }
 }
