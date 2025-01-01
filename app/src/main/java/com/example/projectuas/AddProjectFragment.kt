@@ -239,11 +239,13 @@ open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
             typeface = resources.getFont(R.font.poppinsmedium)
             setTextSize(16f)
 
+            // Set inputType to email and imeOptions to Done
+            inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+            imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+
             // Listener for Enter key
-            setOnEditorActionListener { _, actionId, event ->
-                if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE ||
-                    event?.keyCode == android.view.KeyEvent.KEYCODE_ENTER
-                ) {
+            setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
                     val emailInput = text.toString().trim()
                     if (emailInput.isNotEmpty()) {
                         val currentEmails = getCurrentEnteredEmails()
@@ -261,6 +263,7 @@ open class AddProjectFragment : Fragment(R.layout.fragment_add_project) {
                 }
             }
         }
+
 
         emailCard.addView(newMemberEditText)
 
