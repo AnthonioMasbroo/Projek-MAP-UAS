@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "625614080509",
+    "firebase_url": "https://projek-map-uas-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "projek-map-uas",
     "storage_bucket": "projek-map-uas.appspot.com"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.projectuas"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "625614080509-7nbmhrd9an456dkf69ru8mvv24a0dhqk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.projectuas",
+            "certificate_hash": "5a32c18fe9048113144ce09987c47e1bb7c7dea9"
+          }
+        },
+        {
+          "client_id": "625614080509-sdjchmqa1jokvi7cqpg7fjv9dmscaouo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDC08ZOgb4R06Og9rA7igCjvL41Fkpe2Pk"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "625614080509-sdjchmqa1jokvi7cqpg7fjv9dmscaouo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

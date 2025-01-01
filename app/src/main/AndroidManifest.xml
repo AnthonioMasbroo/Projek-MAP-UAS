@@ -7,8 +7,9 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
 
     <application
@@ -50,6 +51,11 @@
         <activity android:name=".EditProfileActivity"></activity>
         <activity android:name=".ProjectDetailActivity"></activity>
         <activity android:name=".VideoPlaybackActivity" />
+        <service
+            android:name=".DeadlineCheckService"
+            android:enabled="true"
+            android:exported="false" />
+
     </application>
 
 </manifest>

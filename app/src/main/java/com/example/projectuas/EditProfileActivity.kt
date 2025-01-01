@@ -10,6 +10,7 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.provider.Settings
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -36,6 +37,11 @@ class EditProfileActivity : AppCompatActivity() {
     private lateinit var storage: FirebaseStorage
     private lateinit var sharedPref: android.content.SharedPreferences
     private var imageUri: Uri? = null
+    private lateinit var editProfileEmail: EditText
+    private lateinit var editNewPassword: EditText
+    private lateinit var saveButton: Button
+    private var isPasswordVisible = false
+    private lateinit var ivToggleNewPassword: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,11 +57,35 @@ class EditProfileActivity : AppCompatActivity() {
         val profileImageView: ImageView = findViewById(R.id.editProfileImage)
         val editProfileImageIcon: ImageView = findViewById(R.id.editProfileImageIcon)
         val backButton: ImageView = findViewById(R.id.backButton)
-        val saveButton: Button = findViewById(R.id.saveButton)
+        saveButton = findViewById(R.id.saveButton)
+        editProfileEmail = findViewById(R.id.editProfileEmail)
+        editNewPassword = findViewById(R.id.editNewPassword)
+        ivToggleNewPassword = findViewById(R.id.ivToggleNewPassword)
 
         // Set nama awal dari SharedPreferences
         val currentName = sharedPref.getString("username", "")
         editProfileName.setText(currentName)
+
+        // Set email awal dari SharedPreferences
+        val currentEmail = sharedPref.getString("email", "")
+        editProfileEmail.setText(currentEmail)
+
+        // Setup toggle password visibility
+        ivToggleNewPassword.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            // Toggle password visibility
+            if (isPasswordVisible) {
+                // Show password
+                editNewPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                ivToggleNewPassword.setImageResource(R.drawable.baseline_visibility_24)
+            } else {
+                // Hide password
+                editNewPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                ivToggleNewPassword.setImageResource(R.drawable.baseline_visibility_off_24)
+            }
+            // Maintain cursor position
+            editNewPassword.setSelection(editNewPassword.text.length)
+        }
 
         // Tampilkan gambar profil jika tersedia
         val profileImageUrl = sharedPref.getString("profileImageUri", null)
@@ -83,43 +113,167 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
     private fun saveProfile() {
-        // Ambil nama baru dari EditText
-        val newName = editProfileName.text.toString()
+        // Ambil nilai dari input fields
+        val newName = editProfileName.text.toString().trim()
+        val newEmail = editProfileEmail.text.toString().trim()
+        val newPassword = editNewPassword.text.toString().trim()
 
         // Validasi input
-        if (newName.isEmpty()) {
-            Toast.makeText(this, "Nama tidak boleh kosong", Toast.LENGTH_SHORT).show()
+        if (!validateInput(newName, newEmail, newPassword)) {
             return
         }
 
-        // Simpan nama baru ke SharedPreferences
-        with(sharedPref.edit()) {
-            putString("username", newName)
-            apply()
+        // Show loading state
+        showLoading(true)
+
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            showLoading(false)
+            Toast.makeText(this, "User tidak terautentikasi", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        // Update nama di Firestore
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
+        // Mulai proses update
+        val currentUser = auth.currentUser
+        val updates = mutableListOf<(onComplete: (Boolean) -> Unit) -> Unit>()
+
+        // Update email jika berubah
+        if (newEmail != currentUser?.email) {
+            updates.add { onComplete ->
+                currentUser?.verifyBeforeUpdateEmail(newEmail)
+                    ?.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(this, "Verifikasi email telah dikirim ke $newEmail", Toast.LENGTH_LONG).show()
+                            onComplete(true)
+                        } else {
+                            Toast.makeText(this, "Gagal mengupdate email: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                            onComplete(false)
+                        }
+                    }
+            }
+        }
+
+        // Update password jika diisi
+        if (newPassword.isNotEmpty()) {
+            updates.add { onComplete ->
+                currentUser?.updatePassword(newPassword)
+                    ?.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(this, "Password berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                            onComplete(true)
+                        } else {
+                            Toast.makeText(this, "Gagal mengupdate password: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                            onComplete(false)
+                        }
+                    }
+            }
+        }
+
+        // Update profil di Firestore dan SharedPreferences
+        updates.add { onComplete ->
+            val userUpdates = hashMapOf<String, Any>(
+                "username" to newName,
+                "email" to newEmail,
+                "lastUpdated" to System.currentTimeMillis()
+            )
+
             firestore.collection("users").document(userId)
-                .update("username", newName)
+                .update(userUpdates)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "Profil diperbarui berhasil!", Toast.LENGTH_SHORT).show()
-                    finish()
+                    // Update SharedPreferences
+                    with(sharedPref.edit()) {
+                        putString("username", newName)
+                        putString("email", newEmail)
+                        apply()
+                    }
+                    onComplete(true)
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Gagal memperbarui profil: ${e.message}", Toast.LENGTH_SHORT).show()
+                    onComplete(false)
                 }
-        } else {
-            Toast.makeText(this, "User tidak terautentikasi", Toast.LENGTH_SHORT).show()
         }
 
-        // Menampilkan pesan bahwa profil telah disimpan
-        Toast.makeText(this, "Profil diperbarui berhasil!", Toast.LENGTH_SHORT).show()
-
-        // Kembali ke halaman Profile
-        finish()
+        // Eksekusi semua updates secara berurutan
+        executeUpdatesSequentially(updates) { allSuccessful ->
+            showLoading(false)
+            if (allSuccessful) {
+                Toast.makeText(this, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                setResult(RESULT_OK)
+                finish()
+            }
+        }
     }
+
+    // Fungsi helper untuk validasi input
+    private fun validateInput(name: String, email: String, password: String): Boolean {
+        if (name.isEmpty()) {
+            editProfileName.error = "Nama tidak boleh kosong"
+            return false
+        }
+
+        if (email.isEmpty()) {
+            editProfileEmail.error = "Email tidak boleh kosong"
+            return false
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            editProfileEmail.error = "Format email tidak valid"
+            return false
+        }
+
+        if (password.isNotEmpty() && password.length < 6) {
+            editNewPassword.error = "Password minimal 6 karakter"
+            return false
+        }
+
+        return true
+    }
+
+    // Fungsi helper untuk menjalankan updates secara berurutan
+    private fun executeUpdatesSequentially(
+        updates: List<(onComplete: (Boolean) -> Unit) -> Unit>,
+        onAllComplete: (Boolean) -> Unit
+    ) {
+        if (updates.isEmpty()) {
+            onAllComplete(true)
+            return
+        }
+
+        var currentIndex = 0
+        fun executeNext() {
+            if (currentIndex >= updates.size) {
+                onAllComplete(true)
+                return
+            }
+
+            updates[currentIndex] { success ->
+                if (success) {
+                    currentIndex++
+                    executeNext()
+                } else {
+                    onAllComplete(false)
+                }
+            }
+        }
+
+        executeNext()
+    }
+
+    // Fungsi helper untuk menampilkan/menyembunyikan loading state
+    private fun showLoading(show: Boolean) {
+        // Implementasi loading indicator (ProgressBar atau LoadingDialog)
+        if (show) {
+            // Show loading indicator
+            saveButton.isEnabled = false
+            saveButton.text = "Menyimpan..."
+        } else {
+            // Hide loading indicator
+            saveButton.isEnabled = true
+            saveButton.text = "Save"
+        }
+    }
+
 
     // Buka galeri untuk memilih gambar
     private fun openGalleryToPickImage() {
