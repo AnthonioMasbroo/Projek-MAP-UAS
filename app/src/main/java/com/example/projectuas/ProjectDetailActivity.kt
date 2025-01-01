@@ -111,29 +111,13 @@ class ProjectDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.projectDetailContent).text = project.projectDetail
         findViewById<TextView>(R.id.dueDateContent).text = project.dueDate
 
-        val llTeamMember = findViewById<LinearLayout>(R.id.llTeamMember)
-        llTeamMember.removeAllViews()
+        val llTeamMember = findViewById<TextView>(R.id.llTeamMember)
 
-        if (project.memberList.isEmpty()) {
-            val noMemberTextView = TextView(this).apply {
-                text = "No team members"
-                textSize = 16f
-                setTextColor(resources.getColor(R.color.tv_color, null))
-                typeface = resources.getFont(R.font.poppinsregular)
-                setPadding(0, 10, 0, 10)
-            }
-            llTeamMember.addView(noMemberTextView)
+        val memberCount = project.memberList.size
+        llTeamMember.text = if (memberCount > 0) {
+            "$memberCount"
         } else {
-            project.memberList.forEach { member ->
-                val memberTextView = TextView(this).apply {
-                    text = member.split(" (")[0]
-                    textSize = 16f
-                    setTextColor(resources.getColor(R.color.tv_color, null))
-                    typeface = resources.getFont(R.font.poppinsregular)
-                    setPadding(0, 10, 0, 10)
-                }
-                llTeamMember.addView(memberTextView)
-            }
+            "No team members invited"
         }
 
         val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
