@@ -70,19 +70,10 @@ class ProjectTaskAdapter(
             holder.imgProfile.setImageResource(projectTask.projectImage1)
             holder.tvTeamMembers.text = "Team members (${projectTask.teamMembers.size})"
             holder.tvProgress.text = projectTask.progress
-            holder.imgDoneProject.visibility = View.GONE // Default hidden
-            setDeleteButtonVisibility(holder, projectTask.projectId)
 
-            if (isArchiveList) {
-                // Untuk daftar arsip: sembunyikan tombol done
-                holder.imgDoneProject.visibility = View.GONE
-            } else {
-                // Untuk daftar biasa: tombol checklist berfungsi sebagai archive
-                holder.imgDoneProject.visibility = View.VISIBLE
                 holder.imgDoneProject.setOnClickListener {
                     archiveListener.onProjectArchiveClick(holder.adapterPosition)
                 }
-            }
 
             // Click listener untuk seluruh item
             holder.itemView.setOnClickListener {

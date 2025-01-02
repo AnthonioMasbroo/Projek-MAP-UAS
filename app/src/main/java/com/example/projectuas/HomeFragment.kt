@@ -217,7 +217,7 @@ class HomeFragment : Fragment(),
     // Implementasi Interface OnProjectDeleteClickListener (ProjectTaskAdapter)
     override fun onProjectDoneClick(position: Int) {
         val projectTask = projectTasks[position]
-        deleteProjectTask(projectTask.projectId, position)
+        archiveProjectTask(projectTask, position)
     }
 
     private fun archivePrivateTask(privateTask: PrivateTask, position: Int) {
@@ -299,7 +299,8 @@ class HomeFragment : Fragment(),
                         "dueDate" to (document.getString("dueDate") ?: ""),
                         "taskList" to (document.get("taskList") as? List<String> ?: listOf()),
                         "memberList" to (document.get("memberList") as? List<String> ?: listOf()),
-                        "userId" to (document.getString("userId") ?: "")
+                        "userId" to (document.getString("userId") ?: ""),
+                        "isArchived" to true
                     )
 
                     // Tambahkan data ke koleksi Archive

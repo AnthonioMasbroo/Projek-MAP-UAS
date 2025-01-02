@@ -117,7 +117,7 @@ class ProjectDetailActivity : AppCompatActivity() {
         llTeamMember.text = if (memberCount > 0) {
             "$memberCount"
         } else {
-            "No team members invited"
+            "-"
         }
 
         val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
