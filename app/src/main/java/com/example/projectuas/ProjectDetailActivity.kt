@@ -101,7 +101,14 @@ class ProjectDetailActivity : AppCompatActivity() {
             .addOnSuccessListener { doc ->
                 val adminId = doc.getString("adminId")
                 val currentUserId = auth.currentUser?.uid
-                btnEdit.visibility = if (adminId == currentUserId) View.VISIBLE else View.GONE
+
+
+                // Cek juga roles map
+                val roles = doc.get("roles") as? Map<String, String>
+                val userRole = roles?.get(currentUserId)
+
+
+                btnEdit.visibility = if (adminId == currentUserId || userRole == "admin") View.VISIBLE else View.GONE
             }
     }
 
@@ -165,13 +172,41 @@ class ProjectDetailActivity : AppCompatActivity() {
             .setTitle("Team Members")
             .setView(layoutInflater.inflate(R.layout.dialog_member_list, null).apply {
                 val container = findViewById<LinearLayout>(R.id.memberListContainer)
+
+                // Tampilkan Creator/Admin
+                firestore.collection("projects").document(project.documentId).get()
+                    .addOnSuccessListener { doc ->
+                        val adminId = doc.getString("adminId")
+                        firestore.collection("users").document(adminId ?: "").get()
+                            .addOnSuccessListener { adminDoc ->
+                                val adminName = adminDoc.getString("username")
+                                val adminEmail = adminDoc.getString("email")
+
+                                container.addView(TextView(context).apply {
+                                    text = "Creator/Admin:\nName: $adminName\nEmail: $adminEmail"
+                                    textSize = 16f
+                                    setTextColor(resources.getColor(R.color.tv_color, null))
+                                    typeface = resources.getFont(R.font.poppinsregular)
+                                    setPadding(20, 20, 20, 20)
+                                    setBackgroundResource(R.drawable.input_shape)
+                                    layoutParams = LinearLayout.LayoutParams(
+                                        LinearLayout.LayoutParams.MATCH_PARENT,
+                                        LinearLayout.LayoutParams.WRAP_CONTENT
+                                    ).apply {
+                                        setMargins(0, 10, 0, 10)
+                                    }
+                                })
+                            }
+                    }
+
+                // Tampilkan anggota tim
                 project.memberList.forEach { member ->
                     val memberParts = member.split(" (")
                     val email = memberParts[0]
                     val username = memberParts[1].removeSuffix(")")
 
                     container.addView(TextView(context).apply {
-                        text = "Name: $username\nEmail: $email"
+                        text = "Team Member:\nName: $username\nEmail: $email"
                         textSize = 16f
                         setTextColor(resources.getColor(R.color.tv_color, null))
                         typeface = resources.getFont(R.font.poppinsregular)
