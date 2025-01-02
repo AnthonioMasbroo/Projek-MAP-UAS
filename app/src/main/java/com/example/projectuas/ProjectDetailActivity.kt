@@ -68,12 +68,9 @@ class ProjectDetailActivity : AppCompatActivity() {
 
         // Edit Button Logic
         btnEdit.setOnClickListener {
-            // Tambahkan flag khusus untuk memastikan mode edit
-            val intent = Intent(this, MainActivity::class.java).apply {
-                putExtra("MODE", "EDIT_PROJECT")
+            val intent = Intent(this, AddProjectActivity::class.java).apply {
                 putExtra("projectData", project)
-                putExtra("isEditMode", true)  // Flag tambahan
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("isEditMode", true)
             }
             startActivity(intent)
             finish()

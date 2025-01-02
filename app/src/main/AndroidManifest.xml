@@ -51,6 +51,10 @@
         <activity android:name=".EditProfileActivity"></activity>
         <activity android:name=".ProjectDetailActivity"></activity>
         <activity android:name=".VideoPlaybackActivity" />
+        <activity
+            android:name=".AddProjectActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ProjectUAS" />
     </application>
 
 </manifest>
