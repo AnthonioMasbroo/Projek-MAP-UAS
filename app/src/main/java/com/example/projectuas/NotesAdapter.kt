@@ -23,8 +23,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import android.view.GestureDetector
+import android.view.MotionEvent
 
 data class NoteItem(
+    val documentId: String = "",
     val content: String,
     val isChecklist: Boolean = false,
     val isImage: Boolean = false,
@@ -43,7 +46,9 @@ data class ChecklistItem(
     var isChecked: Boolean = false
 )
 
-class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<NotesAdapter.NoteViewHolder>() {
+class NotesAdapter(private val notes: List<NoteItem>,
+                   private val onDeleteNote: (Int, NoteItem) -> Unit
+    ) : RecyclerView.Adapter<NotesAdapter.NoteViewHolder>() {
 
     inner class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView: TextView = itemView.findViewById(R.id.textView)
@@ -88,6 +93,57 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
         holder.fileView.visibility = View.GONE
         holder.audioPlaybackLayout.visibility = View.GONE
 
+        // Untuk text note
+        if (note.content.isNotEmpty()) {
+            holder.textView.setOnLongClickListener {
+                val adapterPosition = holder.adapterPosition
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    showDeleteDialog(holder.itemView.context, adapterPosition, notes[adapterPosition], "text note")
+                }
+                true
+            }
+        }
+
+        // Untuk checklist
+        if (note.isChecklist) {
+            holder.checklistContainer.setOnLongClickListener {
+                showDeleteDialog(holder.itemView.context, position, note, "checklist")
+                true
+            }
+        }
+
+        // Untuk gambar
+        if (note.isImage) {
+            holder.imageView.setOnLongClickListener {
+                showDeleteDialog(holder.itemView.context, position, note, "image")
+                true
+            }
+        }
+
+        // Untuk video
+        if (note.isVideo) {
+            holder.videoFrame.setOnLongClickListener {
+                showDeleteDialog(holder.itemView.context, position, note, "video")
+                true
+            }
+        }
+
+        // Untuk audio
+        if (note.isAudio) {
+            holder.audioPlaybackLayout.setOnLongClickListener {
+                showDeleteDialog(holder.itemView.context, position, note, "audio")
+                true
+            }
+        }
+
+        // Untuk file
+        if (note.isFile) {
+            holder.filePreviewLayout.setOnLongClickListener {
+                showDeleteDialog(holder.itemView.context, position, note, "file")
+                true
+            }
+        }
+
         // Tampilkan note content jika ada
         if (note.content.isNotEmpty()) {
             holder.textView.visibility = View.VISIBLE
@@ -104,9 +160,31 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
                     isChecked = checklistItem.isChecked
                     isEnabled = true
                 }
+
+                // Tambahkan gesture detector untuk membedakan click dan long click
+                val gestureDetector = GestureDetector(holder.itemView.context, object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onLongPress(e: MotionEvent) {
+                        val adapterPosition = holder.adapterPosition
+                        if (adapterPosition != RecyclerView.NO_POSITION) {
+                            showDeleteDialog(
+                                holder.itemView.context,
+                                adapterPosition,
+                                notes[adapterPosition],
+                                "checklist"
+                            )
+                        }
+                    }
+                })
+
+                checkBox.setOnTouchListener { v, event ->
+                    gestureDetector.onTouchEvent(event)
+                    false // Tetap izinkan checkbox untuk bekerja normal
+                }
+
                 holder.checklistContainer.addView(checkBox)
             }
         }
+
 
         // Menampilkan Image jika ada
         if (note.isImage && note.uri != null) {
@@ -223,6 +301,21 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
         }
     }
 
+    private fun showDeleteDialog(context: Context, position: Int, note: NoteItem, type: String) {
+        AlertDialog.Builder(context)
+            .setTitle("Hapus Note")
+            .setMessage("Apakah Anda yakin ingin menghapus $type ini?")
+            .setPositiveButton("Hapus") { dialog, _ ->
+                onDeleteNote(position, note)
+                dialog.dismiss() // Pastikan dialog ditutup
+            }
+            .setNegativeButton("Batal") { dialog, _ ->
+                dialog.dismiss() // Pastikan dialog ditutup
+            }
+            .setCancelable(false) // Mencegah dialog ditutup dengan klik di luar
+            .show()
+    }
+
     // Fungsi untuk menampilkan dialog pemutaran video
     private fun showVideoDialog(context: Context, uri: Uri) {
         val dialogBuilder = AlertDialog.Builder(context)
@@ -260,6 +353,7 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
                     0 -> { // Play in App
                         val intent = Intent(context, VideoPlaybackActivity::class.java).apply {
                             putExtra("videoUri", uri.toString())
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)  // Tambahkan flag ini
                         }
                         context.startActivity(intent)
                     }
@@ -267,6 +361,7 @@ class NotesAdapter(private val notes: List<NoteItem>) : RecyclerView.Adapter<Not
                         val intent = Intent(Intent.ACTION_VIEW).apply {
                             setDataAndType(uri, "video/*")
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)  // Tambahkan flag ini
                         }
                         try {
                             context.startActivity(Intent.createChooser(intent, "Choose App to Play Video"))
