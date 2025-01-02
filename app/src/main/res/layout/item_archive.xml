@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="90dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_margin="8dp"
-    app:cardBackgroundColor="@android:color/white"
-    app:cardElevation="8dp"
-    app:cardCornerRadius="15dp">
+    app:cardCornerRadius="15dp"
+    app:cardBackgroundColor="#FFE396"
+    app:cardElevation="10dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="20dp">
+        android:layout_height="wrap_content"
+        android:padding="21dp">
 
-        <!-- Nama Tugas -->
         <TextView
-            android:id="@+id/tvTaskName"
+            android:id="@+id/tvArchivedTaskName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Task Name"
@@ -25,28 +24,37 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Icon Done -->
         <ImageView
-            android:id="@+id/imgDone"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:id="@+id/imgDelete"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             android:layout_marginTop="10dp"
-            android:src="@drawable/ic_done"
-            android:contentDescription="Finish Task"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="Delete Project"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Progress -->
+        <ImageView
+            android:id="@+id/imgRestore"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/ic_restore"
+            android:contentDescription="Restore Project"
+            app:layout_constraintEnd_toStartOf="@id/imgDelete"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
-            android:id="@+id/tvTaskProgress"
+            android:id="@+id/tvArchivedTaskProgress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="On Progress"
+            android:text="Progress"
             android:textColor="@color/tv_color"
             android:textSize="12sp"
             android:fontFamily="@font/poppinsregular"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTaskName" />
+            app:layout_constraintTop_toBottomOf="@id/tvArchivedTaskName" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

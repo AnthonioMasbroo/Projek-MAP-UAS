@@ -24,4 +24,6 @@
     <string name="create">Add Project</string>
     <string name="archive">Archive</string>
     <string name="profile">Profile</string>
+
+    <string name="default_web_client_id">625614080509-sdjchmqa1jokvi7cqpg7fjv9dmscaouo.apps.googleusercontent.com</string>
 </resources>

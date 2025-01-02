@@ -61,8 +61,15 @@ class MainActivity : AppCompatActivity() {
             putString("username", username)
             apply()
         }
-        loadFragment(HomeFragment())
+
+        // Tampilkan bottom navigation
         bottomNavigationView.visibility = View.VISIBLE
+
+        // Load HomeFragment
+        loadFragment(HomeFragment())
+
+        // Set selected item ke Home
+        bottomNavigationView.selectedItemId = R.id.nav_home
     }
 
     private fun setupNavigation(savedInstanceState: Bundle?) {

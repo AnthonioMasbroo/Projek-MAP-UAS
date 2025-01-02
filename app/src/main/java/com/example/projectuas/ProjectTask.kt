@@ -6,5 +6,5 @@ data class ProjectTask(
     val teamMembers: List<String>,
     val progress: String,
     val projectImage1: Int, // Resource ID untuk gambar profil 1
-    val projectImage2: Int  // Resource ID untuk gambar profil 2
+    val isArchived: Boolean = false // Tambahkan properti ini
 )

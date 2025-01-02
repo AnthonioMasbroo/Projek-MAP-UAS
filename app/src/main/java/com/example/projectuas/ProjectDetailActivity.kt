@@ -13,6 +13,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import android.annotation.SuppressLint
 import android.widget.Toast
 import android.util.Log
+import android.view.View
+import androidx.appcompat.app.AlertDialog
+
 
 class ProjectDetailActivity : AppCompatActivity() {
 
@@ -45,6 +48,15 @@ class ProjectDetailActivity : AppCompatActivity() {
             Toast.makeText(this, "Invalid project data", Toast.LENGTH_SHORT).show()
             finish()
             return
+        }
+
+        // Pindahkan checkUserRole() setelah project diinisialisasi
+        checkUserRole()
+        // Disable edit button if the project is archived
+        val isArchived = intent.getBooleanExtra("isArchived", false)
+        if (isArchived) {
+            btnEdit.isEnabled = false // Disable button
+            btnEdit.alpha = 0.5f      // Optional: Reduce opacity to indicate disabled state
         }
 
         displayProjectDetails()
@@ -84,40 +96,41 @@ class ProjectDetailActivity : AppCompatActivity() {
         navigateToHome()
     }
 
+    private fun checkUserRole() {
+        firestore.collection("projects").document(project.documentId).get()
+            .addOnSuccessListener { doc ->
+                val adminId = doc.getString("adminId")
+                val currentUserId = auth.currentUser?.uid
+                btnEdit.visibility = if (adminId == currentUserId) View.VISIBLE else View.GONE
+            }
+    }
+
+
     @SuppressLint("NewApi")
     private fun displayProjectDetails() {
-        // Kode displayProjectDetails tetap sama
+        // Set project title, detail, and due date
         findViewById<TextView>(R.id.tvProjectTitle).text = project.projectTitle
         findViewById<TextView>(R.id.projectDetailContent).text = project.projectDetail
         findViewById<TextView>(R.id.dueDateContent).text = project.dueDate
 
-        val llTeamMember = findViewById<LinearLayout>(R.id.llTeamMember)
-        llTeamMember.removeAllViews()
-
-        if (project.memberList.isEmpty()) {
-            val noMemberTextView = TextView(this).apply {
-                text = "No team members"
-                textSize = 16f
-                setTextColor(resources.getColor(R.color.tv_color, null))
-                typeface = resources.getFont(R.font.poppinsregular)
-                setPadding(0, 10, 0, 10)
-            }
-            llTeamMember.addView(noMemberTextView)
+        val llTeamMember = findViewById<TextView>(R.id.llTeamMember)
+        // Update Team Members count and set click listener for member details
+        val memberCount = project.memberList.size
+        llTeamMember.text = if (memberCount > 0) {
+            "$memberCount"
         } else {
-            project.memberList.forEach { member ->
-                val memberTextView = TextView(this).apply {
-                    text = member.split(" (")[0]
-                    textSize = 16f
-                    setTextColor(resources.getColor(R.color.tv_color, null))
-                    typeface = resources.getFont(R.font.poppinsregular)
-                    setPadding(0, 10, 0, 10)
-                }
-                llTeamMember.addView(memberTextView)
-            }
+            "No team members invited"
+        }
+        findViewById<ImageView>(R.id.ivMembers).setOnClickListener {
+            showMemberListDialog()
         }
 
+
+
+        // Setup task list
         val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
         llTaskList.removeAllViews()
+
         project.taskList.forEach { task ->
             val taskCard = LinearLayout(this).apply {
                 layoutParams = LinearLayout.LayoutParams(
@@ -129,23 +142,53 @@ class ProjectDetailActivity : AppCompatActivity() {
                 setBackgroundResource(R.drawable.input_date)
                 setPadding(50, 50, 50, 50)
                 setOnClickListener {
-                    val intent = Intent(this@ProjectDetailActivity, TaskDetailActivity::class.java).apply {
-                        putExtra("taskName", task) // 'task' adalah nama task dari taskList
+                    startActivity(Intent(this@ProjectDetailActivity, TaskDetailActivity::class.java).apply {
+                        putExtra("taskName", task)
                         putExtra("projectId", project.documentId)
-                    }
-                    startActivity(intent)
+                    })
                 }
-            }
 
-            val taskTextView = TextView(this).apply {
-                text = task
-                textSize = 16f
-                setTextColor(resources.getColor(R.color.bg, null))
-                typeface = resources.getFont(R.font.poppinsmedium)
-                setPadding(0, 10, 0, 10)
+                addView(TextView(context).apply {
+                    text = task
+                    textSize = 16f
+                    setTextColor(resources.getColor(R.color.bg, null))
+                    typeface = resources.getFont(R.font.poppinsmedium)
+                    setPadding(0, 10, 0, 10)
+                })
             }
-            taskCard.addView(taskTextView)
             llTaskList.addView(taskCard)
         }
+    }
+
+    private fun showMemberListDialog() {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Team Members")
+            .setView(layoutInflater.inflate(R.layout.dialog_member_list, null).apply {
+                val container = findViewById<LinearLayout>(R.id.memberListContainer)
+                project.memberList.forEach { member ->
+                    val memberParts = member.split(" (")
+                    val email = memberParts[0]
+                    val username = memberParts[1].removeSuffix(")")
+
+                    container.addView(TextView(context).apply {
+                        text = "Name: $username\nEmail: $email"
+                        textSize = 16f
+                        setTextColor(resources.getColor(R.color.tv_color, null))
+                        typeface = resources.getFont(R.font.poppinsregular)
+                        setPadding(20, 20, 20, 20)
+                        setBackgroundResource(R.drawable.input_shape)
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            setMargins(0, 10, 0, 10)
+                        }
+                    })
+                }
+            })
+            .setPositiveButton("Close", null)
+            .create()
+
+        dialog.show()
     }
 }
