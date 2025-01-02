@@ -299,7 +299,9 @@ class HomeFragment : Fragment(),
                         "dueDate" to (document.getString("dueDate") ?: ""),
                         "taskList" to (document.get("taskList") as? List<String> ?: listOf()),
                         "memberList" to (document.get("memberList") as? List<String> ?: listOf()),
-                        "userId" to (document.getString("userId") ?: "")
+                        "userId" to (document.getString("userId") ?: ""),
+                        "adminId" to (document.getString("adminId") ?: ""),
+                        "roles" to (document.get("roles") ?: mapOf<String, String>())
                     )
 
                     // Tambahkan data ke koleksi Archive

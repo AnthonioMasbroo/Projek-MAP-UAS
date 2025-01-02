@@ -163,7 +163,9 @@ class ArchiveFragment : Fragment(), ArchiveAdapter.OnDeleteClickListener, Archiv
                         "memberList" to document.get("memberList"),
                         "userId" to document.getString("userId"),
                         "dueDate" to document.getString("dueDate"),
-                        "projectDetail" to document.getString("projectDetail")
+                        "projectDetail" to document.getString("projectDetail"),
+                        "adminId" to document.getString("adminId"),
+                        "roles" to document.get("roles")
                     )
 
                     // Tambahkan kembali ke koleksi "projects"
