@@ -113,21 +113,19 @@ class ProjectDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.projectDetailContent).text = project.projectDetail
         findViewById<TextView>(R.id.dueDateContent).text = project.dueDate
 
+        val llTeamMember = findViewById<TextView>(R.id.llTeamMember)
         // Update Team Members count and set click listener for member details
-        findViewById<TextView>(R.id.tvTeamMember).text = "Team Members (${project.memberList.size})"
+        val memberCount = project.memberList.size
+        llTeamMember.text = if (memberCount > 0) {
+            "$memberCount"
+        } else {
+            "No team members invited"
+        }
         findViewById<ImageView>(R.id.ivMembers).setOnClickListener {
             showMemberListDialog()
         }
 
-        // Setup team member list
-        val llTeamMember = findViewById<LinearLayout>(R.id.llTeamMember)
-        llTeamMember.removeAllViews()
 
-        if (project.memberList.isEmpty()) {
-            llTeamMember.removeAllViews()
-        } else {
-            findViewById<TextView>(R.id.tvTeamMember).text = "Team Members (${project.memberList.size})"
-        }
 
         // Setup task list
         val llTaskList = findViewById<LinearLayout>(R.id.llTaskList)
